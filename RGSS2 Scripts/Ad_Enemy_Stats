@@ -1,0 +1,178 @@
+#:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
+# Actor-dependent Enemy Stats
+# Author: Kread-EX, by request of Demonfire94
+# Date: 28/02/2010
+# Version 1.0
+#:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=:=
+ 
+#  TERMS OF USAGE
+# #------------------------------------------------------------------------------------------------------------------
+# #  You are free to adapt this work to suit your needs.
+# #  You can use this work both for commercial and non-commercial work.
+# #  Credit is appreciated.
+# #------------------------------------------------------------------------------------------------------------------
+
+=begin
+
+HOW TO SETUP PROPORTIONAL STATS:
+
+Enter the following in the note section for each enemy you want to have stats
+proportional to actor states.
+
+HP=50
+MP=50
+ATK=50
+DEF=50
+SPI=50
+AGI=50
+Actor=1
+
+In this example, the monster will have all stats 50% higher than those of the
+first actor.
+For any tag you DON'T enter, the default editor value will be applied.
+Always perform a carriage return when changing tags.
+Note that the percentage applies to BASE stats, and thus, don't take the
+equipment into account.
+You can only enter 1 actor, though.
+
+=end
+
+#==============================================================================
+# ** Game_Enemy
+#==============================================================================
+
+class Game_Enemy < Game_Battler
+  #--------------------------------------------------------------------------
+  # * Determine tags
+  #--------------------------------------------------------------------------
+  def tags
+    return enemy.note.split("\r\n")
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic Maximum HP
+  #--------------------------------------------------------------------------
+  def base_maxhp
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('HP')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_maxhp
+      final_value += ($game_actors[actor_id].base_maxhp * percent).round
+      return final_value
+    end
+    return enemy.maxhp
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic Maximum MP
+  #--------------------------------------------------------------------------
+  def base_maxmp
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('MP')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_maxmp
+      final_value += ($game_actors[actor_id].base_maxmp * percent).round
+      return final_value
+    end
+    return enemy.maxmp
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic Maximum attack
+  #--------------------------------------------------------------------------
+  def base_atk
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('ATK')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_atk
+      final_value += ($game_actors[actor_id].base_atk * percent).round
+      return final_value
+    end
+    return enemy.atk
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic defense
+  #--------------------------------------------------------------------------
+  def base_def
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('DEF')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_def
+      final_value += ($game_actors[actor_id].base_def * percent).round
+      return final_value
+    end
+    return enemy.def
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic spirit
+  #--------------------------------------------------------------------------
+  def base_spi
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('SPI')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_spi
+      final_value += ($game_actors[actor_id].base_spi * percent).round
+      return final_value
+    end
+    return enemy.spi
+  end
+  #--------------------------------------------------------------------------
+  # * Get Basic agility
+  #--------------------------------------------------------------------------
+  def base_agi
+    percent = actor_id = final_value = nil
+    dynamic = false
+    tags.each {|str|
+      if str.include?('AGI')
+        dynamic = true
+        percent = (str.gsub(/\D/,'').to_i / (str.include?('-') ? -100.0 : 100.0))
+      elsif str.include?('Actor')
+        actor_id = (str.gsub(/\D/,'')).to_i
+      end
+    }
+    if dynamic
+      final_value = $game_actors[actor_id].base_agi
+      final_value += ($game_actors[actor_id].base_agi * percent).round
+      return final_value
+    end
+    return enemy.agi
+  end
+  #--------------------------------------------------------------------------
+end
