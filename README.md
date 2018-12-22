@@ -10,13 +10,17 @@ An attempt to conserve all VXAce Scripts made by various scripts after Dropbox d
 # Existing VXA Repositories
 Dedicated Repositories for large amounts of scripts.
 
-### Archeia Engine Ace
-- https://github.com/Archeia/AEA
+### Yanfly Engine Repository
+- https://github.com/Archeia/YEARepo
 
 ### Yami Engine and Battle Symphony
 - [Original Profile](https://github.com/suppayami/)
 - https://github.com/Archeia/rmvxa-collection
 - https://github.com/Archeia/Battle-Symphony
 
-### Yanfly Engine Repository
-- https://github.com/Archeia/YEARepo
+### TheoAllen Repository
+- [Original Profile](https://github.com/theoallen/RGSS3)
+- https://github.com/Archeia/RGSS3
+
+### Archeia Engine Ace
+- https://github.com/Archeia/AEA
