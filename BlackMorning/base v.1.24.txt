@@ -1,0 +1,1220 @@
+#==============================================================================
+# ** Blackmorning -> Basic Module
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.24
+#  updated 11/05/2015
+# - adjusted help window
+#==============================================================================
+# ? Introduction
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# - Yami's fix -> revival & item animations in YEA - Ace Battle Engine.
+# - adds parameter and experience gauges 
+# - shows transparent faces for non-battle members in menu
+# - new vocab information including for sparam and xparam
+# - changes help window to include item type, icon, name
+#   (also durability and weight if using Xail system)
+# - rotating actor instead of moving.
+# - adds codes for other BM scripts
+# - added horizontal fix coding for menus(version 1.18)
+#==============================================================================
+# ? Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below ? Materials but above ? Main. 
+# Remember to save.
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Script Calls.
+# -----------------------------------------------------------------------------
+# setSelfSwitch(map, id, A-D, true/false)
+#   ie.   setSelfSwitch(@map_id, 1, "A", true)
+# isSelfSwitch?(map, id, A-D)
+#   ie.   isSelfSwitch?(2, 1, "A") 
+# setAllSelf(map, id, true/false)
+#   ie.   setAllSelf(2, 1, true) 
+#===============================================================================
+module BM
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Non Member Options -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # if member not in battle party, makes character/face transparent
+  NON_PARTY_MEMBER_TRANSPARENCY = true 
+  STANDBY_COLOR = Color.new(0, 0, 0, 128) #  Standby Members Background Color  
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Status Icons on Face (Skills Status Window) -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # for the Skill Status window, states/buffs appear at bottom of actor's face
+  MOVE_STATE_OVER_FACE = true
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Bust Image Options -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  PORTRAIT_FOLDER = "Graphics/Portraits/" 
+  # default "Graphics/Portraits/"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Text Options -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # for drawing actor class and name in menus
+  TEXT={
+  :bold =>{
+    :actor_name => true,
+    :actor_class => false,
+    }, # DO NOT REMOVE
+  :italic =>{
+    :actor_name => false,
+    :actor_class => true,
+    }, # DO NOT REMOVE
+  } # DO NOT REMOVE
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Sound Options -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # for sound effects, a random pitch can be given to give some variation
+  RAND_PITCH = false
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Parameters Settings -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # EXP Gauge Options
+  EXP_VOCAB = "EXP"
+  EXP_GAUGE1   = 12            # "Window" skin text colour for gauge.
+  EXP_GAUGE2   = 4             # "Window" skin text colour for gauge.
+  SHOW_EXP_GAUGE = true        # show exp gauge in menu 
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # show parameters gauge in status
+  SHOW_PARAM_GAUGE = false
+  # set param ratio max to :set, :max or :current
+  # if a stat is higher than param max, then will be based on that stat
+  # :set (max param is set number)
+  # :max (uses default max param)
+  # :current (max param is based on highest current param)
+  PARAM_RATIO_MAX = :set
+  PARAM_MAX = 100 # if PARAM_RATIO_MAX = :set
+  # Each of the stats have a non-window colour. Adjust them as you see fit.
+  PARAM_COLOUR ={
+  # ParamID => [:stat,       Colour1,                   Colour2          ],
+          0 => [ :hp,  Color.new(115,  20,  20), Color.new(170,  44,  44)],
+          1 => [ :mp,  Color.new(158, 113, 229), Color.new(205, 178, 245)],
+          2 => [ :atk, Color.new(151,  83, 123), Color.new(207, 181, 187)],
+          3 => [ :def, Color.new(121, 208, 151), Color.new(184, 233, 205)],
+          4 => [ :mat, Color.new( 82, 150, 215), Color.new(161, 197, 236)],
+          5 => [ :mdf, Color.new(236, 238, 150), Color.new(246, 253, 203)],
+          6 => [ :agi, Color.new(182, 150, 131), Color.new(222, 208, 194)],
+          7 => [ :luk, Color.new(146,  89, 165), Color.new(206, 182, 219)],
+  } # DO NOT REMOVE
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Parameter Vocabulary
+  PARAM_VOCAB_FULL={
+    0 => "Hit Points", 
+    1 => "Spell Points",
+    2 => "Attack",
+    3 => "Defence",
+    4 => "Intelligence",
+    5 => "Resistance",
+    6 => "Agility",
+    7 => "Luck",
+  } # DO NOT REMOVE
+  XPARAM_VOCAB = {
+    0 => "HIT",
+    1 => "EVA",
+    2 => "CRI",
+    3 => "CEV",
+    4 => "MEV",
+    5 => "MRF",
+    6 => "CNT",
+    7 => "HRG",
+    8 => "MRG",
+    9 => "LRG",
+  } # DO NOT REMOVE 
+  XPARAM_VOCAB_FULL={
+    0 => "Hit Rate",
+    1 => "Evasion",
+    2 => "Critical Hit",
+    3 => "Critical Evade",
+    4 => "Magic Evasion",
+    5 => "Magic Reflect",
+    6 => "Counter Rate",
+    7 => "HP Regen", 
+    8 => "SP Regen",
+    9 => "LP Regen",
+  } # DO NOT REMOVE 
+  SPARAM_VOCAB = {
+    0 => "TGR", 
+    1 => "GRD",
+    2 => "REC",
+    3 => "PHA",
+    4 => "MCR",     
+    5 => "LCR",
+    6 => "PDR",
+    7 => "MDR",
+    8 => "FDR",
+    9 => "EXR",
+  } # DO NOT REMOVE
+  SPARAM_VOCAB_FULL={
+    0 => "Target Rate", 
+    1 => "Guard Rate",
+    2 => "Recovery",
+    3 => "Item Boost",
+    4 => "SP Cost Rate",
+    5 => "LP Charge",
+    6 => "Physical Damage",
+    7 => "Magical Damage",
+    8 => "Floor Damage",
+    9 => "#{EXP_VOCAB} Rate",
+  } # DO NOT REMOVE
+  CPARAM_VOCAB ={
+    :cdr         => "CDR",  #cooldown rate       # Requires YEA - Skill Restrictions
+    :wur         => "WUR",  #warmup rate         # Requires YEA - Skill Restrictions
+    :hcr         => "HCR",  #hp cost rate        # Requires YEA - Skill Cost Manager
+    :tcr_y       => "LCR",  #tp cost rate        # Requires YEA - Skill Cost Manager
+    :gcr         => "GCR",  #gold cost rate      # Requires YEA - Skill Cost Manager
+    :hp_physical => "HPhys",#convert hp physical # Requires YEA - Convert Damage
+    :mp_physical => "SPhys",#convert mp physical # Requires YEA - Convert Damage
+    :hp_magical  => "HMag", #convert hp magical  # Requires YEA - Convert Damage
+    :mp_magical  => "SMag", #convert mp magical  # Requires YEA - Convert Damage
+  } # DO NOT REMOVE
+  CPARAM_VOCAB_FULL ={
+    :cdr         => "Cooldown Rate",    #cooldown rate       # Requires YEA - Skill Restrictions
+    :wur         => "Warmup Rate",      #warmup rate         # Requires YEA - Skill Restrictions
+    :tcr_y       => "LP Cost Rate",     #tp cost rate        # Requires YEA - Skill Cost Manager
+    :hcr         => "HP Cost Rate",     #hp cost rate        # Requires YEA - Skill Cost Manager     
+    :gcr         => "Gold Cost Rate",   #gold cost rate      # Requires YEA - Skill Cost Manager
+    :hp_physical => "Drain HP Physical",#convert hp physical # Requires YEA - Convert Damage
+    :mp_physical => "Drain SP Physical",#convert mp physical # Requires YEA - Convert Damage
+    :mp_magical  => "Drain HP Magical", #convert hp magical  # Requires YEA - Convert Damage
+    :hp_magical  => "Drain SP Magical", #convert mp magical  # Requires YEA - Convert Damage
+  } # DO NOT REMOVE
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Actor Movement -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Hold button when entering direction to turn actor.
+  ROTATE_INPUT = Input::Y   
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - Advanced Help -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Show additional info in the help window
+  ADVANCED_HELP = true
+  # HELP_DISPLAY = [show_help_icon, show_name, show_description, show_type]
+  HELP_DISPLAY = [true, true, true, true]
+  HELP_SIZE = 2 # number of lines in help
+  ITEM_NAME_COLOR = Color.new(182, 150, 131) # color of item/skill name in help
+  # NOTE:
+  # color is overwritten if using hime item rarity or vlue weapon/armor randomizer
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - System Options -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # This determines if the Game's Process Priority will be heightened to "High"
+  # at startup. This may help some lag issues.
+  HIGH_PROCESS = true  
+  # This determines if the Mouse Cursor should be hidden will inside the game.
+  # This only applies if the mouse is inside the Game's window.
+  HIDE_MOUSE = false
+  # This determines if the window should be resizable.
+  # By default, the game window is not resizable without script calls.
+  # Note this does not increase the Game's graphic displaying abilities,
+  # and will cause graphics stretching/shrinking.
+  ALLOW_RESIZING = false
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#===============================================================================
+if $sel_time_frame != nil
+  BM::SELCHAR_CALENDER = true
+else
+  BM::SELCHAR_CALENDER = false
+end
+#===============================================================================
+module BM  
+  #--------------------------------------------------------------------------
+  # * New method: required_script
+  #--------------------------------------------------------------------------
+  def self.required_script(name, req, version, type = 0)
+    if version == true 
+      return unless (!$imported[req]) # non-bm scripts
+      msg = "The script '%s' requires the script\n"
+      case type
+      when :above
+        msg += "'%s' above it to work properly\n"
+      when :below
+        msg += "'%s' or higher to work properly\n"
+      else        
+        msg += "'%s' below it to work properly\n"
+      end
+      msg += "Go to bmscripts.weebly.com to download this script."
+      self.exit_message(msg, name, req, version)
+    end
+    if type != :below && (!$imported[req] || $imported[req] < version) #checks version number
+      msg = "The script '%s' requires the script\n"
+      case type
+      when :above
+        msg += "'%s' v%s or higher above it to work properly\n"
+      else
+        msg += "'%s' v%s or higher to work properly\n"
+      end
+      msg += "Go to bmscripts.weebly.com to download this script."
+      self.exit_message(msg, name, req, version)
+    elsif type == :below && $imported[req] # wrong position
+      msg = "The script '%s' requires the script\n"
+      msg += "'%s' below it to work properly\n"
+      msg += "move the scripts to the proper position"
+      self.exit_message(msg, name, req, version)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * New method: exit_message
+  #--------------------------------------------------------------------------
+  def self.exit_message(message, name, req, version = 1.00)
+    name = self.script_name(name)
+    req  = self.script_name(req)
+    msgbox(sprintf(message, name, req, version))
+    exit
+  end
+  #--------------------------------------------------------------------------
+  # * New method: script_name
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_base] = 1.24
+#===============================================================================
+module BM
+  def self.handle
+    a = Win32API.new('kernel32', 'GetPrivateProfileString', 'pppplp', 'l')
+    b = Win32API.new('user32', 'FindWindow', 'pp', 'i')
+    a.call("Game", "Title", "", title = "\0" * 256, 256, ".//Game.ini")
+    return b.call("RGSS Player", title.delete!("\0"))
+  end
+end
+Win32API.new('user32', 'ShowCursor', 'i', 'i').call(0) if BM::HIDE_MOUSE
+Win32API.new('kernel32','SetPriorityClass','pi','i').call(-1, 256) if BM::HIGH_PROCESS
+Win32API.new('user32', 'SetWindowLong', 'lll', 'l').call(BM.handle, -16, 0x10C70000|0x00080000) if BM::ALLOW_RESIZING
+#==============================================================================
+# ** Cache
+#==============================================================================
+module Cache
+  #--------------------------------------------------------------------------
+  # * New Method: Get Portrait Graphic
+  #--------------------------------------------------------------------------
+  def self.portrait(filename, hue = 0)
+    load_bitmap(BM::PORTRAIT_FOLDER, filename, hue)
+  end
+end
+#==============================================================================
+# ** SE  (randomizes pitch)
+#==============================================================================
+module RPG
+  class SE < AudioFile
+    def play
+      unless @name.empty?
+        pitch = @pitch
+        pitch += rand(7)-3 if BM::RAND_PITCH
+        Audio.se_play("Audio/SE/" + @name, @volume, pitch)
+      end
+    end
+  end
+end
+#==============================================================================
+# ** Numeric
+#==============================================================================
+class Numeric  
+  #--------------------------------------------------------------------------
+  # * group_digits
+  #--------------------------------------------------------------------------
+  def group
+    return self.to_s unless $imported["YEA-CoreEngine"] && YEA::CORE::GROUP_DIGITS
+    self.to_s.gsub(/(\d)(?=\d{3}+(?:\.|$))(\d{3}\..*)?/,'\1,\2')
+  end  
+end
+#==============================================================================
+# ** Object
+#==============================================================================
+class Object
+  #--------------------------------------------------------------------------
+  # * New method: file_exist?
+  #--------------------------------------------------------------------------
+  def file_exist?(path, filename)
+    $file_list ||= {}
+    $file_list[path + filename] ||= file_test(path, filename)
+    $file_list[path + filename]
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_file_list
+  #--------------------------------------------------------------------------
+  def file_test(path, filename)
+    bitmap = Cache.load_bitmap(path, filename) rescue nil
+    bitmap ? true : false
+  end
+  #--------------------------------------------------------------------------
+  # * New method: portrait_exist?
+  #--------------------------------------------------------------------------
+  def portrait_exist?(filename)
+    file_exist?(BM::PORTRAIT_FOLDER, filename)
+  end
+  #--------------------------------------------------------------------------
+  # * New method: character_exist?
+  #--------------------------------------------------------------------------
+  def character_exist?(filename)
+    file_exist?("Graphics/Characters/", filename)
+  end
+  #--------------------------------------------------------------------------
+  # * New method: faceset_exist?
+  #--------------------------------------------------------------------------
+  def faceset_exist?(filename)
+    file_exist?("Graphics/Faces/", filename)
+  end
+end
+#==============================================================================
+# ** Horizontal fix
+#==============================================================================
+module Horizontal_Fix
+  #--------------------------------------------------------------------------
+  # * Get Number of Lines to Show
+  #--------------------------------------------------------------------------
+  def visible_line_number; return 1; end
+  #--------------------------------------------------------------------------
+  # * Get Digit Count
+  #--------------------------------------------------------------------------
+  def col_max; return item_max; end
+  #--------------------------------------------------------------------------
+  # * Get Spacing for Items Arranged Side by Side
+  #--------------------------------------------------------------------------
+  def spacing; return 8;  end
+  #--------------------------------------------------------------------------
+  # * Calculate Width of Window Contents
+  #--------------------------------------------------------------------------
+  def contents_width
+    (item_width + spacing) * item_max - spacing
+  end
+  #--------------------------------------------------------------------------
+  # * Calculate Height of Window Contents
+  #--------------------------------------------------------------------------
+  def contents_height; item_height; end
+  #--------------------------------------------------------------------------
+  # * Get Leading Digits
+  #--------------------------------------------------------------------------
+  def top_col
+    ox / (item_width + spacing)
+  end
+  #--------------------------------------------------------------------------
+  # * Set Leading Digits
+  #--------------------------------------------------------------------------
+  def top_col=(col)
+    self.ox = (col < 0 ? 0 : col) * (item_width + spacing)
+  end
+  #--------------------------------------------------------------------------
+  # * Get Trailing Digits
+  #--------------------------------------------------------------------------
+  def bottom_col
+    top_col + col_max - 1
+  end
+  #--------------------------------------------------------------------------
+  # * Set Trailing Digits
+  #--------------------------------------------------------------------------
+  def bottom_col=(col)
+    self.top_col = col - (col_max - 1)
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Scroll Cursor to Position Within Screen
+  #--------------------------------------------------------------------------
+  def ensure_cursor_visible
+    self.top_col = index if index < top_col
+    self.bottom_col = index if index > bottom_col
+  end  
+  #--------------------------------------------------------------------------
+  # * Get Rectangle for Displaying Items
+  #--------------------------------------------------------------------------
+  def item_rect(index)
+    rect = super
+    rect.x = index * (item_width + spacing)
+    rect.y = 0
+    rect
+  end
+end
+#==============================================================================
+# ** Vertical fix
+#==============================================================================
+module Vertical_Fix
+  #--------------------------------------------------------------------------
+  # * Get Number of Lines to Show
+  #--------------------------------------------------------------------------
+  def visible_line_number; return item_max; end
+  #--------------------------------------------------------------------------
+  # * Get Digit Count
+  #--------------------------------------------------------------------------
+  def col_max; return 1; end
+  #--------------------------------------------------------------------------
+  # * Get Spacing for Items Arranged Side by Side
+  #--------------------------------------------------------------------------
+  def spacing; return 32;  end
+  #--------------------------------------------------------------------------
+  # overwrite method: contents_width
+  #--------------------------------------------------------------------------
+  def contents_width; return width - standard_padding * 2; end
+  #--------------------------------------------------------------------------
+  # overwrite method: contents_height
+  #--------------------------------------------------------------------------
+  def contents_height
+    ch = height - standard_padding * 2
+    return [ch - ch % item_height, row_max * item_height].max
+  end
+  #--------------------------------------------------------------------------
+  # * Scroll Cursor to Position Within Screen
+  #--------------------------------------------------------------------------
+  def ensure_cursor_visible
+    self.top_row = row if row < top_row
+    self.bottom_row = row if row > bottom_row
+  end
+  #--------------------------------------------------------------------------
+  # * Get Rectangle for Drawing Items
+  #--------------------------------------------------------------------------
+  def item_rect(index)
+    rect = Rect.new
+    rect.width = item_width
+    rect.height = item_height
+    rect.x = index % col_max * (item_width + spacing)
+    rect.y = index / col_max * item_height
+    rect
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: cursor_down
+  #--------------------------------------------------------------------------
+  def cursor_down(wrap = false)
+    if index < item_max - col_max || (wrap && col_max == 1)
+      select((index + col_max) % item_max)
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # overwrite method: cursor_up
+  #--------------------------------------------------------------------------
+  def cursor_up(wrap = false)
+    if index >= col_max || (wrap && col_max == 1)
+      select((index - col_max + item_max) % item_max)
+    end
+  end
+end
+#==============================================================================
+# ** Vocab
+#==============================================================================
+module Vocab  
+  def self.exp; BM::EXP_VOCAB;  end
+  def self.exp_a; BM::EXP_VOCAB; end
+  ExpTotal        = "Current #{self.exp}"
+  ObtainExp       = "%s #{self.exp} received!"
+  def self.element(id); $data_system.elements[id] ? $data_system.elements[id] : ""; end
+  def self.state(id); $data_states[id] ? $data_states[id].name : ""; end
+  def self.enemies(id); $data_enemies[id] ? $data_enemies[id].name : ""; end
+  def self.classes(id); $data_classes[id] ? $data_classes[id].name : ""; end
+  def self.items(id); $data_items[id] ? $data_items[id].name : ""; end
+  def self.weapons(id); $data_weapons[id] ? $data_weapons[id].name : ""; end
+  def self.armors(id); $data_armor[id] ? $data_armor[id].name : ""; end
+  def self.skills(id); $data_skills[id] ? $data_skills[id].name : ""; end
+  def self.skill_types(id); $data_system.skill_types[id] ? $data_system.skill_types[id] : ""; end
+  def self.weapon_types(id); $data_system.weapon_types[id] ?$data_system.weapon_types[id] : ""; end
+  def self.armor_types(id); $data_system.armor_types[id] ? $data_system.armor_types[id] : ""; end
+  def self.variables(id); $data_system.variables[id] ? $data_system.variables[id] : ""; end
+  def self.switches(id); $data_system.switches[id] ? $data_system.switches[id] : ""; end
+  #--------------------------------------------------------------------------
+  # * New Method: extra Parameters
+  #--------------------------------------------------------------------------
+  def self.param_a(id)
+    case id
+    when 0, :hp, :maxhp then self.param(0)
+    when 1, :mp, :maxmp then self.param(1)
+    when 2, :atk then self.param(2)
+    when 3, :def then self.param(3)
+    when 4, :mat then self.param(4)
+    when 5, :mdf then self.param(5)
+    when 6, :agi then self.param(6)
+    when 7, :luk then self.param(7)
+    else; ""
+    end
+  end
+  #--------------------------------------------------------------------------
+  def self.param_f(id)
+    case id
+    when 0, :maxhp, :hp then BM::PARAM_VOCAB_FULL[0]
+    when 1, :maxmp, :mp then BM::PARAM_VOCAB_FULL[1]
+    when 2, :atk then BM::PARAM_VOCAB_FULL[2]
+    when 3, :def then BM::PARAM_VOCAB_FULL[3]
+    when 4, :mat then BM::PARAM_VOCAB_FULL[4]
+    when 5, :mdf then BM::PARAM_VOCAB_FULL[5]
+    when 6, :agi then BM::PARAM_VOCAB_FULL[6]
+    when 7, :luk then BM::PARAM_VOCAB_FULL[7]
+    else; ""
+    end
+  end
+  #--------------------------------------------------------------------------
+  def self.xparam_a(id)
+    case id
+    when 0, :hit then BM::XPARAM_VOCAB[0]
+    when 1, :eva then BM::XPARAM_VOCAB[1]
+    when 2, :cri then BM::XPARAM_VOCAB[2]
+    when 3, :cev then BM::XPARAM_VOCAB[3]
+    when 4, :mev then BM::XPARAM_VOCAB[4]
+    when 5, :mrf then BM::XPARAM_VOCAB[5]
+    when 6, :cnt then BM::XPARAM_VOCAB[6]
+    when 7, :hrg then BM::XPARAM_VOCAB[7]
+    when 8, :mrg then BM::XPARAM_VOCAB[8]
+    when 9, :trg then BM::XPARAM_VOCAB[9]
+    else; ""
+    end
+  end  
+  #--------------------------------------------------------------------------
+  def self.xparam_f(id)
+    case id
+    when 0, :hit then BM::XPARAM_VOCAB_FULL[0]
+    when 1, :eva then BM::XPARAM_VOCAB_FULL[1]
+    when 2, :cri then BM::XPARAM_VOCAB_FULL[2]
+    when 3, :cev then BM::XPARAM_VOCAB_FULL[3]
+    when 4, :mev then BM::XPARAM_VOCAB_FULL[4]
+    when 5, :mrf then BM::XPARAM_VOCAB_FULL[5]
+    when 6, :cnt then BM::XPARAM_VOCAB_FULL[6]
+    when 7, :hrg then BM::XPARAM_VOCAB_FULL[7]
+    when 8, :mrg then BM::XPARAM_VOCAB_FULL[8]
+    when 9, :trg then BM::XPARAM_VOCAB_FULL[9]
+    else; ""
+    end
+  end
+  #--------------------------------------------------------------------------
+  def self.sparam_a(id)
+    case id
+    when 0, :tgr then BM::SPARAM_VOCAB[0] 
+    when 1, :grd then BM::SPARAM_VOCAB[1]
+    when 2, :rec then BM::SPARAM_VOCAB[2]
+    when 3, :pha then BM::SPARAM_VOCAB[3]
+    when 4, :mcr then BM::SPARAM_VOCAB[4]  
+    when 5, :tcr then BM::SPARAM_VOCAB[5]
+    when 6, :pdr then BM::SPARAM_VOCAB[6]
+    when 7, :mdr then BM::SPARAM_VOCAB[7]
+    when 8, :fdr then BM::SPARAM_VOCAB[8]
+    when 9, :exr then BM::SPARAM_VOCAB[9]
+    else; ""
+    end    
+  end   
+  #--------------------------------------------------------------------------
+  def self.sparam_f(id)
+    case id
+    when 0, :tgr then BM::SPARAM_VOCAB_FULL[0]
+    when 1, :grd then BM::SPARAM_VOCAB_FULL[1]
+    when 2, :rec then BM::SPARAM_VOCAB_FULL[2]
+    when 3, :pha then BM::SPARAM_VOCAB_FULL[3]
+    when 4, :mcr then BM::SPARAM_VOCAB_FULL[4]
+    when 5, :tcr then BM::SPARAM_VOCAB_FULL[5]
+    when 6, :pdr then BM::SPARAM_VOCAB_FULL[6]
+    when 7, :mdr then BM::SPARAM_VOCAB_FULL[7]
+    when 8, :fdr then BM::SPARAM_VOCAB_FULL[8]
+    when 9, :exr then BM::SPARAM_VOCAB_FULL[9]
+    else; ""
+    end
+  end   
+  #--------------------------------------------------------------------------
+  def self.cparam_a(id)
+    case id
+      when :hcr, :tcr_y, :gcr, :cdr, :wur, :hp_physical, :mp_physical, :mp_magical, :hp_magical
+        BM::CPARAM_VOCAB[id] 
+      when :gut
+        return unless $imported["BubsGuts"]
+        Vocab.guts_a
+      else; ""
+    end
+  end 
+  #--------------------------------------------------------------------------
+  def self.cparam_f(id)
+    case id
+      when :hcr, :tcr_y, :gcr, :cdr, :wur, :hp_physical, :mp_physical, :mp_magical, :hp_magical 
+        BM::CPARAM_VOCAB_FULL[id] 
+      when :gut
+        return unless $imported["BubsGuts"]
+        Vocab.guts
+      else; ""
+    end
+  end  
+end
+#==============================================================================
+# ** Cache
+#==============================================================================
+module Cache  
+  #--------------------------------------------------------------------------
+  # new method: storage_image
+  #--------------------------------------------------------------------------
+  def self.storage_image(bitmap, name)
+    @image_cache ||= {}
+    @image_cache[name] = bitmap unless @image_cache.has_key?(name)
+    @image_cache[name]
+  end  
+  #--------------------------------------------------------------------------
+  # new method: storage_image
+  #--------------------------------------------------------------------------
+  def self.restore_image(name)
+    return false if @image_cache.nil? || !@image_cache.has_key?(name)
+    @image_cache[name]
+  end  
+end
+#==============================================================================
+# ** Game_Action
+#==============================================================================
+class Game_Action
+  #--------------------------------------------------------------------------
+  # * Overwrite: targets_for_friends
+  #--------------------------------------------------------------------------
+  def targets_for_friends
+    if item.for_user?
+      [subject]
+    elsif item.for_dead_friend?
+      if item.for_one?
+        [friends_unit.smooth_dead_target(@target_index)]
+      else
+        friends_unit.dead_members
+      end
+    elsif item.for_friend?
+      if item.for_one?
+        if @target_index < 0
+          [friends_unit.random_target]
+        else
+          [friends_unit.smooth_target(@target_index)]
+        end
+      else
+        friends_unit.alive_members
+      end
+    end
+  end
+end
+#==============================================================================
+# ** Game_BattlerBase
+#==============================================================================
+class Game_BattlerBase
+  #--------------------------------------------------------------------------
+  # * New Method: atk_element_rate
+  #--------------------------------------------------------------------------
+  def atk_element_rate(id); features_sum(FEATURE_ATK_ELEMENT, id); end
+end 
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler
+  #--------------------------------------------------------------------------
+  # * Alias: Remove the equipment that can not be equipped with Item_gain,
+  # returned to the party equipment that removed
+  #--------------------------------------------------------------------------
+  alias :bm_base_rui :release_unequippable_items
+  def release_unequippable_items(item_gain = true)
+    loop do
+      last_equips = equips.dup
+      bm_base_rui(item_gain)
+      return if equips == last_equips
+    end
+  end
+end
+#==============================================================================
+# ** Game_Player
+#==============================================================================
+class Game_Player < Game_Character
+  #--------------------------------------------------------------------------
+  # * Alias: move_by_input
+  #--------------------------------------------------------------------------
+  alias :bm_base_mbi :move_by_input
+  def move_by_input
+    return if !movable? || $game_map.interpreter.running?
+    if Input.dir4 > 0
+      if Input.press?(BM::ROTATE_INPUT)
+        set_direction(Input.dir4)
+      else
+        bm_base_mbi
+      end
+    end
+  end
+end
+#==============================================================================
+# ** Game_Event
+#==============================================================================
+class Game_Event
+  #--------------------------------------------------------------------------
+  # * New method: name
+  #--------------------------------------------------------------------------
+  def name; @event ? @event.name : ""; end
+end
+#==============================================================================#
+# ** Game_Interpreter
+#==============================================================================#
+class Game_Interpreter
+  #--------------------------------------------------------------------------
+  # * New Method: Set SelfSwitch
+  #--------------------------------------------------------------------------
+  def setSelfSwitch(map, eID, selfSwitch, trueFalse)
+    switch = [map, eID, selfSwitch]
+    $game_self_switches[switch] = trueFalse
+    $game_map.refresh
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Is SelfSwitch true/false?
+  #--------------------------------------------------------------------------
+  def isSelfSwitch?(map, eID, selfSwitch)
+    switch = [map, eID, selfSwitch]
+    $game_self_switches[switch]
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Set all SelfSwitches
+  #--------------------------------------------------------------------------
+  def setAllSelf(map, eID, trueFalse)
+    switches = ["A","B","C","D"]
+    for i in switches
+      setSelfSwitch(map, eID, i, trueFalse)
+    end
+    $game_map.refresh
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Self On
+  #--------------------------------------------------------------------------
+  def self_on(mapID,eventID,switch)
+     $game_self_switches[[mapID, eventID, switch]] = true
+     $game_map.refresh
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Self Off
+  #--------------------------------------------------------------------------
+  def self_off(mapID,eventID,switch)
+     $game_self_switches[[mapID, eventID, switch]] = false
+     $game_map.refresh    
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: A switch on
+  #--------------------------------------------------------------------------
+  def a_on(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "A"]] = true
+     $game_map.refresh    
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: A switch off
+  #--------------------------------------------------------------------------
+  def a_off(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "A"]] = false
+     $game_map.refresh    
+  end   
+  #--------------------------------------------------------------------------
+  # * New Method: B switch on
+  #--------------------------------------------------------------------------
+  def b_on(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "B"]] = true
+     $game_map.refresh
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: B switch off
+  #--------------------------------------------------------------------------
+  def b_off(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "B"]] = false
+     $game_map.refresh    
+  end   
+  #--------------------------------------------------------------------------
+  # * New Method: C switch on
+  #--------------------------------------------------------------------------
+  def c_on(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "C"]] = true
+     $game_map.refresh    
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: C switch off
+  #--------------------------------------------------------------------------
+  def c_off(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "C"]] = false
+     $game_map.refresh    
+  end   
+  #--------------------------------------------------------------------------
+  # * New Method: D switch on
+  #--------------------------------------------------------------------------
+  def d_on(mapID,eventID)
+    $game_self_switches[[mapID, eventID, "D"]] = true
+    $game_map.refresh    
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: D switch off
+  #--------------------------------------------------------------------------
+  def d_off(mapID,eventID)
+     $game_self_switches[[mapID, eventID, "D"]] = false
+     $game_map.refresh    
+  end 
+  #--------------------------------------------------------------------------
+  # * Alias: Change of state
+  #--------------------------------------------------------------------------
+  alias :bm_base_c313 :command_313
+  def command_313
+    bm_base_c313
+    $game_party.clear_results
+  end
+end
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window
+  alias :bm_base_pnc :process_normal_character
+  def process_normal_character(c, pos)
+    return unless c >= ' '
+    bm_base_pnc(c, pos)
+  end
+  #--------------------------------------------------------------------------
+  # * New method: exp_gauge1
+  #--------------------------------------------------------------------------
+  def exp_gauge1; return text_color(BM::EXP_GAUGE1); end
+  #--------------------------------------------------------------------------
+  # * New method: exp_gauge2
+  #--------------------------------------------------------------------------
+  def exp_gauge2; return text_color(BM::EXP_GAUGE2); end
+  #--------------------------------------------------------------------------
+  # * New method: param_gauge1
+  #--------------------------------------------------------------------------
+  def param_gauge1(param_id); return BM::PARAM_COLOUR[param_id][1]; end
+  #--------------------------------------------------------------------------
+  # * New method: param_gauge2
+  #--------------------------------------------------------------------------
+  def param_gauge2(param_id); return BM::PARAM_COLOUR[param_id][2]; end
+  #--------------------------------------------------------------------------
+  # * New method: standby color
+  #--------------------------------------------------------------------------
+  def standby_color(actor)
+    return BM::STANDBY_COLOR unless battle_party?(actor)
+    return Color.new(0, 0, 0, 0)
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: gauge colors
+  #--------------------------------------------------------------------------  
+  def hp_gauge_color1;   BM::PARAM_COLOUR[0][1];   end
+  def hp_gauge_color2;   BM::PARAM_COLOUR[0][2];   end
+  def mp_gauge_color1;   BM::PARAM_COLOUR[1][1];   end
+  def mp_gauge_color2;   BM::PARAM_COLOUR[1][2];   end
+  #--------------------------------------------------------------------------
+  def item_name_color; BM::ITEM_NAME_COLOR; end
+  #--------------------------------------------------------------------------
+  # * New Method: percent colour
+  #--------------------------------------------------------------------------
+  def percent_color(value)
+    if value < 0; power_down_color
+    elsif value > 0; power_up_color
+    else;  normal_color
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Get Percentage of exp needed
+  #--------------------------------------------------------------------------
+  def exp_rate(actor)
+    now_exp = actor.exp - actor.current_level_exp
+    next_exp = actor.next_level_exp - actor.current_level_exp
+    rate = now_exp * 1.0 / next_exp
+    rate = [[rate, 1.0].min, 0.0].max
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Get Percentage of Paramaters
+  #--------------------------------------------------------------------------
+  def param_ratio(actor, param_id)
+    minimum = 0
+    case BM::PARAM_RATIO_MAX
+    when :set
+      maximum = BM::PARAM_MAX
+    when :max
+      maximum = actor.param_max(param_id)
+    when :current
+      maximum = 1
+    end    
+    for i in 2..7
+      maximum = [actor.param(i), maximum].max
+      minimum = [actor.param(i), minimum].min
+    end
+    return 1.0 if maximum == minimum
+    rate = actor.param(param_id).to_f/maximum.to_f
+    return rate
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Portrait
+  #     enabled : Enabled flag. When false, draw semi-transparently.
+  #--------------------------------------------------------------------------
+  def draw_portrait(portrait_name, x, y, enabled = true)
+    return unless portrait_exist?(portrait_name)
+    bitmap = Cache.portrait(portrait_name)
+    rect = Rect.new(0, 0, bitmap.width, bitmap.height)
+    contents.blt(x, y, bitmap, rect, enabled ? 255 : translucent_alpha)
+    bitmap.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Actor Portrait
+  #--------------------------------------------------------------------------
+  def draw_actor_portrait(actor, x, y, enabled = true)
+    filename = "#{actor.face_name}-#{actor.face_index}"
+    return unless portrait_exist?(filename)
+    draw_portrait(filename, x, y, enabled)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: Draw Actor level 
+  #--------------------------------------------------------------------------
+  alias :bm_base_dal :draw_actor_level
+  def draw_actor_level(actor, x, y, width = 100)
+    draw_gauge(x + 10, y, width - 10, exp_rate(actor), exp_gauge1, exp_gauge2) if BM::SHOW_EXP_GAUGE
+    change_color(system_color)
+    draw_text(x, y, 32, line_height, Vocab::level_a)
+    change_color(normal_color)
+    draw_text(x, y, width, line_height, actor.level.group, 2)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: Draw Parameters
+  #--------------------------------------------------------------------------
+  alias :bm_base_dap :draw_actor_param
+  def draw_actor_param(actor, x, y, param_id, width = 156)
+    if BM::SHOW_PARAM_GAUGE
+      draw_gauge(x, y, width, param_ratio(actor, param_id), param_gauge1(param_id), param_gauge2(param_id))
+    end
+    change_color(system_color)
+    draw_text(x, y, 120, line_height, Vocab::param(param_id))
+    change_color(normal_color)
+    draw_text(x, y, width, line_height, actor.param(param_id).group, 2)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: battle_party?
+  #--------------------------------------------------------------------------
+  def battle_party?(actor)
+    if BM::NON_PARTY_MEMBER_TRANSPARENCY
+      return $game_party.battle_members.include?(actor)
+    else; true
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_actor_face
+  #--------------------------------------------------------------------------
+  alias :bm_menu_daf :draw_actor_face
+  def draw_actor_face(actor, x, y, enabled = battle_party?(actor))
+    face_background(actor, x, y)
+    bm_menu_daf(actor, x, y, enabled)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: face_background
+  #--------------------------------------------------------------------------
+  def face_background(actor, x, y, width = 96, height = 96)
+    contents.fill_rect(x, y, width, height, standby_color(actor))
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_character
+  #--------------------------------------------------------------------------
+  def draw_character(character_name, character_index, x, y, ani = false)
+    return unless character_name
+    bitmap = Cache.character(character_name)
+    sign = character_name[/^[\!\$]./]
+    if sign && sign.include?('$')
+      cw = bitmap.width / 3
+      ch = bitmap.height / 4
+    else
+      cw = bitmap.width / 12
+      ch = bitmap.height / 8
+    end
+    n = character_index
+    step = 0
+    step = @walk if ani
+    src_rect = Rect.new((n%4*3+1+step)*cw, (n/4*4)*ch, cw, ch)
+    contents.blt(x - cw / 2, y - ch, bitmap, src_rect, ani ? 255 : translucent_alpha)
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_actor_graphic
+  #--------------------------------------------------------------------------
+  def draw_actor_graphic(actor, x, y, ani = false)
+    draw_character(actor.character_name, actor.character_index, x, y, ani)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: draw_actor_name
+  #--------------------------------------------------------------------------
+  alias :bm_base_dan :draw_actor_name
+  def draw_actor_name(*args)
+    contents.font.bold = BM::TEXT[:bold][:actor_name]
+    contents.font.italic = BM::TEXT[:italic][:actor_name]
+    bm_base_dan(*args)
+    contents.font.bold = Font.default_bold
+    contents.font.italic = Font.default_italic
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: draw_actor_class
+  #--------------------------------------------------------------------------
+  alias :bm_base_dac :draw_actor_class
+  def draw_actor_class(*args)
+    contents.font.bold = BM::TEXT[:bold][:actor_class]
+    contents.font.italic = BM::TEXT[:italic][:actor_class]
+    bm_base_dac(*args)
+    contents.font.bold = Font.default_bold
+    contents.font.italic = Font.default_italic
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: ani_motion
+  #--------------------------------------------------------------------------
+  def ani_motion
+    @animtime += 1
+    if @animtime == 10
+      case @walk
+      when 1; @walk -= 1
+      when -1; @walk += 1
+      when 0
+        if @step == 1
+          @walk = -1
+          @step = 0
+        else
+          @walk = 1
+          @step = 1
+        end
+      end
+      refresh
+      @animtime = 0
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * game_time
+  #--------------------------------------------------------------------------
+  def game_time
+    gametime = Graphics.frame_count / Graphics.frame_rate
+    hours = gametime / 3600
+    minutes = gametime / 60 % 60
+    seconds = gametime % 60
+    result = sprintf("%d:%02d:%02d", hours, minutes, seconds)
+    return result
+  end  
+  #--------------------------------------------------------------------------
+  # * new method: draw_icon_face
+  #--------------------------------------------------------------------------
+  def draw_icon_face(actor, dest_rect, enabled)
+    bitmap = Cache.face(actor.face_name)
+    rect = Rect.new(actor.face_index % 4 * 96, actor.face_index / 4 * 96, 96, 96)
+    bitmap.blur if dest_rect.width < 96/2
+    cache = Bitmap.new(dest_rect.width, dest_rect.height)
+    cache.stretch_blt(Rect.new(0,0,dest_rect.width, dest_rect.height), bitmap, rect) 
+    Cache.storage_image(cache, actor.face_name + actor.face_index.to_s)
+    bitmap.dispose
+    contents.stretch_blt(dest_rect, cache, Rect.new(0,0,cache.width,cache.height), enabled ? 255 : translucent_alpha) 
+  end
+  #--------------------------------------------------------------------------
+  # * new method: Draw icon Character Graphic
+  #--------------------------------------------------------------------------
+  def draw_icon_character(actor, dest_rect, enabled = false)
+    bitmap = Cache.character(actor.character_name)
+    sign = actor.character_name[/^[\!\$]./]
+    if sign && sign.include?('$')
+      cw = bitmap.width / 3
+      ch = bitmap.height / 4
+    else
+      cw = bitmap.width / 12
+      ch = bitmap.height / 8
+    end
+    n = actor.character_index
+    step = 0
+    step = @walk if enabled
+    src_rect = Rect.new((n%4*3+1+step)*cw, (n/4*4)*ch, cw, ch)
+    bitmap.blur if dest_rect.width < bitmap.width/2
+    cache = Bitmap.new(dest_rect.width, dest_rect.height)
+    cache.stretch_blt(Rect.new(0,0,dest_rect.width, dest_rect.height), bitmap, src_rect) 
+    Cache.storage_image(cache, actor.character_name + actor.character_index.to_s)
+    contents.stretch_blt(dest_rect, cache, Rect.new(0,0,cache.width,cache.height), enabled ? 255 : translucent_alpha) 
+  end
+end
+#==============================================================================
+# ** Window_Help
+#==============================================================================
+class Window_Help < Window_Base
+  attr_accessor :item_color
+  #--------------------------------------------------------------------------
+  # * Alias: Object Initialization
+  #--------------------------------------------------------------------------
+  alias bm_base_init initialize
+  def initialize(line_number = BM::HELP_SIZE)
+    bm_base_init(line_number)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: item color
+  #--------------------------------------------------------------------------
+  def set_item_color(item)
+    @item_color = normal_color
+    @item_color = item_name_color
+    return unless item.is_a?(RPG::BaseItem)         
+    return unless $imported[:TH_ItemRarity] || $imported[:Vlue_WARandom]
+    if $imported[:TH_ItemRarity]
+      @item_color = item.rarity_colour      
+    elsif $imported[:Vlue_WARandom]
+      if item.is_a?(RPG::Weapon) || item.is_a?(RPG::Armor)
+        @item_color = item.color
+      elsif !item.is_a?(RPG::Weapon) || !item.is_a?(RPG::Armor)
+        @item_color = item_name_color
+      end     
+    end    
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: set_item
+  #--------------------------------------------------------------------------
+  alias :bm_base_si :set_item
+  def set_item(item)
+    return bm_base_si(item) unless BM::ADVANCED_HELP
+    unless item; set_text("") ; return; end
+    new_line = "\n"
+    icon = BM::HELP_DISPLAY[0] ? '\i[' + item.icon_index.to_s + '] ' : ""
+    name = BM::HELP_DISPLAY[1] ? item.name : ""
+    desc = BM::HELP_DISPLAY[2] ? '\c[0]' + item.description : ""
+    if item.is_a?(RPG::Weapon) || item.is_a?(RPG::Armor)
+      weight = $imported["XAIL-INVENTORY-WEIGHT"] ? weight = " - Weight: #{item.weight}." : ""
+      durability = $imported["XAIL-ITEM-DURABILITY"] ? durability = " - Durability: #{item.durability} / #{item.max_durability}." : ""
+    else weight = ""; durability = ""
+    end
+    if BM::HELP_DISPLAY[3]
+      if item.is_a?(RPG::Weapon) ; item_type = " (" + Vocab.weapon_types(item.wtype_id) + ")" end
+      if item.is_a?(RPG::Armor) ; item_type = " (" + Vocab.armor_types(item.atype_id) + ")" end
+      if item.is_a?(RPG::Skill) ; item_type = " (" + Vocab.skill_types(item.stype_id) + ")" end
+    else; item_type = ""
+    end
+    item_text = icon + name + item_type.to_s + weight + durability + new_line + desc
+    set_item_color(item)
+    set_text(item_text)
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Text with Control Characters
+  #--------------------------------------------------------------------------
+  def draw_text_ex(x, y, text)
+    reset_font_settings
+    change_color(@item_color) unless @item_color == nil
+    text = convert_escape_characters(text)
+    pos = {:x => x, :y => y, :new_x => x, :height => calc_line_height(text)}
+    process_character(text.slice!(0, 1), text, pos) until text.empty?
+  end
+end
+#==============================================================================
+# ** Window_BattleStatus
+#==============================================================================
+class Window_BattleStatus < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * New Method: face_background
+  #--------------------------------------------------------------------------
+  def face_background(actor, x, y, width = 96, height = 96)
+  end
+end
+#==============================================================================
+# ** Window_SkillStatus
+#==============================================================================
+class Window_SkillStatus < Window_Base
+  if BM::MOVE_STATE_OVER_FACE
+    alias :bm_skill_dai :draw_actor_icons
+    def draw_actor_icons(actor, x, y)
+      bm_skill_dai(actor, 0, 72)
+    end
+  end
+end
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :icon_index
+  #--------------------------------------------------------------------------
+  # Alias: Setup
+  #--------------------------------------------------------------------------
+  alias :bm_base_setup :setup
+  def setup(actor_id)
+    bm_base_setup(actor_id)
+    @icon_index = 0
+  end
+end
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

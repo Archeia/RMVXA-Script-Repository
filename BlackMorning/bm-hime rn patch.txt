@@ -1,0 +1,32 @@
+#===============================================================================
+#Blackmorning Hime Region Names Patch
+# version 1.0
+# released 03/02/2014
+#===============================================================================
+# -adds region name to location window in columns menu
+module BM
+  module MENU
+    # set to true if using Tsukihime Region Names and want to add it to location
+    SHOW_REGION_NAMES = true 
+    REGION_SPACER = ", " #what goes between region name and map name
+  end
+end
+#==============================================================================
+# ** Window_Location
+#==============================================================================
+class Window_location < Window_Base  
+  if BM::MENU::SHOW_REGION_NAMES
+  #--------------------------------------------------------------------------
+  # * location
+  #--------------------------------------------------------------------------
+  def location? 
+    if $game_map.display_name.empty?; text1 = " " 
+    else; text1 = $game_map.display_name
+    end
+    if $game_map.region_name.empty?; text2 = "" 
+    else; text2 = "#{$game_map.region_name}#{BM::MENU::REGION_SPACER}"
+    end  
+    return "#{text2}#{text1}"
+  end
+  end
+end

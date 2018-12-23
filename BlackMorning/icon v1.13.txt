@@ -1,0 +1,923 @@
+#===============================================================================
+# ** Blackmorning -> Icon Module (Based on YEM - Icon Module Library)
+# -----------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.13
+#  updated Jan/04/2016
+# - adjusted icon text coding
+#==============================================================================
+#  - INTRODUCTION -
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# - adds icons automatically before specific words found in various windows 
+#   (stats, elements, menu commands, classes, states, etc...)
+#===============================================================================
+# Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above ▼ Main. Remember to save. 
+# -----------------------------------------------------------------------------
+# Class Notetags - These notetags go in the class notebox in the database.
+# -----------------------------------------------------------------------------
+# <icon: x>
+# Sets the icon representing the class to x.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actor Notetags - These notetags go in the actor notebox in the database.
+# -----------------------------------------------------------------------------
+# <icon: x>
+# Sets the icon representing the actor to x.
+#===============================================================================
+module BM
+  module ICON
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Icon Assignment
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Edit the hash below which contains all of the icons
+    HASH ={
+    :border    => 1073, # goes around command icons
+    :stat_up   => 960,  # higher stat
+    :stat_down => 961,  # lower stat
+    :exp       => 912,
+    :currency  => 262,
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Bubs Gender Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # used for Bubs Gender Functions
+    :gender =>{ 
+      :female     => 614,
+      :male       => 613,
+      :genderless => 612,
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Alignment Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # used for BM-Alignment
+    :align =>{
+      0 => 591, #"Demonic"
+      1 => 591, #"Evil"
+      2 => 590, #"Bad"
+      3 => 590, #"Neutral"
+      4 => 590, #"Good"
+      5 => 589, #"Saintly"
+      6 => 589, #"Divine"
+      }, # Do Not Remove
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # State Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    :state   => { 
+      :auto => true,        # if false, icon is not drawn beside state name
+      }, # Do Not Remove
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Element Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    :element   => { 
+      :auto => true,        # if false, icon is not drawn beside element name
+      0  => 0,
+      1  => 0,
+      2  => 0,
+      3  => 104,  # Fire element.
+      4  => 105,  # Ice element.
+      5  => 106,  # Volt element.
+      6  => 107,  # Earth element.
+      7  => 108,  # Water element.
+      8  => 109,  # Air element.
+      9  => 110,  # Light element.
+      10 => 111,  # Dark element.
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Basic Stats Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    :basic => {
+      :auto => false,        # if false, icon is not drawn beside basic stat name
+      :show_words => false, # if false, only icon is shown instead of stat name
+      0 => 0,   # Level
+      1 => 0,   # Level (short)
+      2 => 880, # HP
+      3 => 880, # HP (short)
+      4 => 881, # MP
+      5 => 881, # MP (short)
+      6 => 882, # TP
+      7 => 882, # TP (short)
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Parameters Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :param => {
+      :auto => true,       # if false, icon is not drawn beside param name
+      :show_words => true, # if false, only icon is shown instead of param name
+      0 => 880, # MaxHP, Max Hit points
+      1 => 881, # MaxMP, Max Magic points
+      2 => 884, # ATK,   ATtacK power
+      3 => 885, # DEF,   DEFense power
+      4 => 886, # MAT,   Magic ATtack power
+      5 => 887, # MDF,   Magic DeFense power
+      6 => 888, # AGI,   AGIlity
+      7 => 889, # LUK,   LUcK    
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # ExParameters Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :xparam => {
+      :auto => true,      # if false, icon is not drawn beside xparam name
+      0 => 884, #HIT, HIT Rate
+      1 => 885, #EVA, EVAsion
+      2 => 886, #CRI, CRItical Hit
+      3 => 887, #CEV, Critical Evade
+      4 => 888, #MEV, Magic EVasion
+      5 => 889, #MRF, Magic ReFlect
+      6 => 890, #CNT, CouNTer rate
+      7 => 880, #HRG, Hp ReGen
+      8 => 881, #MRG, Mp ReGen 
+      9 => 882, #TRG, Tp ReGen
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Special Parameters Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :sparam => {
+      :auto => true,      # if false, icon is not drawn beside sparam name
+      0 => 884, #TGR, TarGet Rate
+      1 => 885, #GRD, GuaRD rate
+      2 => 886, #REC, RECovery
+      3 => 260, #PHA, Pharamcology
+      4 => 881, #MCR, Mp Cost Rate
+      5 => 882, #TCR, Tp ChaRge
+      6 => 890, #PDR, Physical Damage Rate
+      7 => 891, #MDR, Magical Damage Rate
+      8 => 892, #FDR, Floor Damage Rate
+      9 => 912, #EXR, EXp Rate
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Custom Parameters Icons (from YEA scripts)
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :cparam =>{
+      :auto => true,      # if false, icon is not drawn beside cparam name
+      :cdr     => 0,  #cooldown rate # Requires YEA - Skill Restrictions
+      :wur     => 0,  #warmup rate   # Requires YEA - Skill Restrictions
+      :hcr     => 880,  #hp cost rate   # Requires YEA - Skill Cost Manager
+      :tcr_y   => 882,  #tp cost rate   # Requires YEA - Skill Cost Manager
+      :gcr     => 262,  #gold cost rate # Requires YEA - Skill Cost Manager
+      :hp_physical => 880, #convert hp physical # Requires YEA - Convert Damage
+      :mp_physical => 881, #convert mp physical # Requires YEA - Convert Damage
+      :hp_magical  => 880, #convert hp magical  # Requires YEA - Convert Damage
+      :mp_magical  => 881, #convert mp magical  # Requires YEA - Convert Damage
+      :gut     => 884, #guts #Requires Galv - Guts Effect
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Class Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :class => { # can also be defined in the Database in Class Notetag
+      :auto => true,      # if false, icon is not drawn beside class name
+      1  => 576, # Knight
+      2  => 583, # Monk
+      3  => 577, # Paladin
+      4  => 584, # Ranger
+      5  => 582, # Ninja
+      6  => 578, # Archer
+      7  => 581, # Thief 
+      8  => 579, # Cleric
+      9  => 585, # Druid
+      10 => 580, # Sorcerer
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Command Icons (used in menus, shops, etc)
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :command => {
+      0  => 839,    # Battle scene - partycommand - fight.
+      1  => 840,    # Battle scene - partycommand - escape.
+      2  => 837,    # Battle scene - actorcommand - attack.
+      3  => 383,    # Battle scene - actorcommand - defend.
+      4  => 820,    # Menu scene. Item scene. Battle scene - items.  
+      5  => 821,    # Menu scene - skills.
+      6  => 822,    # Menu scene - equipment.
+      7  => 823,    # Menu scene - status.
+      8  => 824,    # Menu scene - formation.
+      9  => 825,    # Menu scene - save.
+      10 => 826,    # Menu scene - game end.
+      11 =>   0,    # 
+      12 => 833,    # Item scene - weapons.
+      13 => 834,    # Item scene - armors.
+      14 => 835,    # Shop scene - key items.
+      15 =>   0,    # Equip scene - change.
+      16 =>   0,    # Equip scene - optimize.
+      17 =>   0,    # Equip scene - clear all.
+      18 => 816,    # Title scene - new game.
+      19 => 817,    # Title scene - continue.
+      20 => 818,    # Title scene. Game End scene - shutdown.
+      21 => 818,    # Game End scene - to title.
+      22 => 818,    # Game End scene - cancel.
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Input Icons (button commands)
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # not automatic for any text yet
+    :input => {
+      :DOWN  => 0,
+      :UP    => 0,
+      :RIGHT => 0,
+      :LEFT  => 0,
+      :L     => 0, # Q
+      :R     => 0, # W
+      :A     => 0, # SHIFT
+      :C     => 0, # SPACE, ENTER, Z
+      :B     => 0, # ESC, X, 0    
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Item Status Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # These are for item descriptions (ie YEA - items or shop)
+    :item_status => {
+      :hp_recover => 880, # used for HP Recovery.
+      :mp_recover => 881, # used for MP Recovery.
+      :tp_recover => 882, # used for TP Recovery.
+      :tp_gain    => 882, # used for TP Gain.
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Skill Types Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :skill_types => {
+      1 => 128,          # Skill scene. Battle scene.
+      2 => 136,          # Skill scene. Battle scene.
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Armor Types Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :armor_types => {
+      1 => 0,
+      2 => 0,
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Weapon Types Icons
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    :weapon_types => {
+      1 => 0,
+      2 => 0,
+      }, # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Custom Word Icons 
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # for any other text you want
+    :words => {
+      :show_words => true, # if false, only icon is shown instead of word
+      "Auto"  => 841,
+      "JP"    => 883,  
+      "Buy"   => 259,
+      "Sell"  => 261,
+      "Equip" => 822,
+      }, # DO NOT REMOVE
+    } # DO NOT REMOVE
+  end
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#===============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_icon] = 1.13
+BM.required(:bm_icon, :bm_base, 1.00, :above)
+#==============================================================================
+module BM
+  module REGEXP
+    ICON_INDEX = /<(?:ICON_INDEX|icon index|icon):[ ](\d+)>/i
+  end
+end
+#==============================================================================
+# ** DataManager
+#==============================================================================
+module DataManager  
+  #--------------------------------------------------------------------------
+  # alias method: load_database
+  #--------------------------------------------------------------------------
+  class <<self; alias load_database_bm_icons load_database; end
+  def self.load_database
+    load_database_bm_icons
+    load_notetags_bm_icons
+  end  
+  #--------------------------------------------------------------------------
+  # new method: load_notetags_cs
+  #--------------------------------------------------------------------------
+  def self.load_notetags_bm_icons
+    groups = [$data_actors, $data_classes]
+    for group in groups
+      for obj in group
+        next if obj.nil?
+        obj.load_notetags_bm_icons
+      end
+    end
+  end
+  
+end # DataManager
+#==============================================================================
+# ** RPG::Class
+#==============================================================================
+class RPG::Class < RPG::BaseItem  
+  #--------------------------------------------------------------------------
+  # public instance variables
+  #--------------------------------------------------------------------------
+  attr_accessor :icon_index  
+  #--------------------------------------------------------------------------
+  # common cache: load_notetags_bm_icons
+  #--------------------------------------------------------------------------
+  def load_notetags_bm_icons
+    @icon_index = 0
+    #---
+    self.note.split(/[\r\n]+/).each { |line|
+      case line
+      #---
+      when BM::REGEXP::ICON_INDEX
+        @icon_index = $1.to_i
+      #---
+      end
+    } # self.note.split
+  end  
+end # RPG::Class
+#==============================================================================
+# ** RPG::Actor
+#==============================================================================
+class RPG::Actor < RPG::BaseItem  
+  #--------------------------------------------------------------------------
+  # public instance variables
+  #--------------------------------------------------------------------------
+  attr_accessor :icon_index  
+  #--------------------------------------------------------------------------
+  # common cache: load_notetags_bm_icons
+  #--------------------------------------------------------------------------
+  def load_notetags_bm_icons
+    @icon_index = 0
+    #---
+    self.note.split(/[\r\n]+/).each { |line|
+      case line
+      #---
+      when BM::REGEXP::ICON_INDEX
+        @icon_index = $1.to_i
+      #---
+      end
+    } # self.note.split
+  end  
+end
+#==============================================================================
+# ** Icon
+#==============================================================================
+module Icon
+  unless $imported[:bm_ring]
+    def self.disable; 0; end
+  end
+  #--------------------------------------------------------------------------
+  def self.basic(id)
+    return BM::ICON::HASH[:basic][id] if BM::ICON::HASH[:basic].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.param(param_id)
+    case param_id
+      when :maxhp,:hp then param_id = 0
+      when :maxmp,:mp then param_id = 1
+      when :atk then param_id = 2
+      when :def then param_id = 3
+      when :mat then param_id = 4
+      when :mdf then param_id = 5
+      when :agi then param_id = 6
+      when :luk then param_id = 7
+    end
+    return BM::ICON::HASH[:param][param_id] if BM::ICON::HASH[:param].include?(param_id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.xparam(id)
+    case id
+      when :hit then id = 0
+      when :eva then id = 1
+      when :cri then id = 2
+      when :cev then id = 3
+      when :mev then id = 4
+      when :mrf then id = 5
+      when :cnt then id = 6
+      when :hrg then id = 7
+      when :mrg then id = 8
+      when :trg then id = 9
+    end
+    return BM::ICON::HASH[:xparam][id] if BM::ICON::HASH[:xparam].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.sparam(id)
+    case id
+      when :tgr then id = 0 
+      when :grd then id = 1
+      when :rec then id = 2
+      when :pha then id = 3
+      when :mcr then id = 4  
+      when :tcr then id = 5
+      when :pdr then id = 6
+      when :mdr then id = 7
+      when :fdr then id = 8
+      when :exr then id = 9
+    end
+    return BM::ICON::HASH[:sparam][id] if BM::ICON::HASH[:sparam].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.cparam(id)
+    return BM::ICON::HASH[:cparam][id] if BM::ICON::HASH[:cparam].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.element(id); 
+    return BM::ICON::HASH[:element][id] if BM::ICON::HASH[:element].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.class(id)
+    return $data_classes[id].icon_index if $data_classes[id].icon_index != 0
+    return BM::ICON::HASH[:class][id] if BM::ICON::HASH[:class].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.actor(id)
+    return $data_actors[id].icon_index if $data_actors[id].icon_index != 0
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.items(id); $data_items[id].icon_index; end
+  def self.weapons(id); $data_weapons[id].icon_index; end
+  def self.armors(id); $data_armors[id].icon_index; end
+  def self.skills(id); $data_skills[id].icon_index; end
+  def self.state(id); $data_states[id].icon_index; end
+  #--------------------------------------------------------------------------
+  def self.param_compare(num)
+    return BM::ICON::HASH[:stat_up] if num > 0
+    return BM::ICON::HASH[:stat_down] if num < 0
+    else; return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.input(id)
+    return BM::ICON::HASH[:input][id] if BM::ICON::HASH[:input].include?(id)
+    return 0
+  end  
+  #--------------------------------------------------------------------------
+  def self.item_status(id)
+    return BM::ICON::HASH[:item_status][id] if BM::ICON::HASH[:item_status].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.command(id)
+    return BM::ICON::HASH[:command][id] if BM::ICON::HASH[:command].include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  # * self.****_types
+  #--------------------------------------------------------------------------
+  def self.skill_types(id)
+    return BM::ICON::HASH[:skill_types][id] if BM::ICON::HASH[:skill_types].include?(id)
+    return 0
+  end
+  def self.weapon_types(id)
+    return BM::ICON::HASH[:weapon_types][id] if BM::ICON::HASH[:weapon_types].include?(id)
+    return 0
+  end
+  def self.armor_types(id)
+    return BM::ICON::HASH[:armor_types][id] if BM::ICON::HASH[:armor_types].include?(id)
+    return 0
+  end
+  def self.words(text); BM::ICON::HASH[:words][text]; end
+  #--------------------------------------------------------------------------
+  def self.border; BM::ICON::HASH[:border]; end
+  def self.exp; BM::ICON::HASH[:exp]; end
+  def self.currency; BM::ICON::HASH[:currency]; end
+  def self.steal_gold; self.currency; end
+  def self.gold_cost; self.currency; end
+  def self.hp_cost; self.basic(2); end  
+  def self.mp_cost; self.basic(4); end  
+  def self.tp_cost; self.basic(6); end  
+end
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :icon_index
+  #--------------------------------------------------------------------------
+  # Alias: Setup
+  #--------------------------------------------------------------------------
+  alias :bm_icon_setup :setup
+  def setup(actor_id)
+    bm_icon_setup(actor_id)
+    @icon_index = actor.icon_index
+  end
+end
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window
+  #--------------------------------------------------------------------------
+  # * New method: get_basic_id
+  #--------------------------------------------------------------------------
+  def get_basic_id(text)
+    for id in 0..7
+      case text; when Vocab.basic(id) then return id; end      
+    end
+    return nil
+  end  
+  #--------------------------------------------------------------------------
+  # * New method: get_param_id
+  #--------------------------------------------------------------------------
+  def get_param_id(text)
+    for id in 0..7  
+      case text
+        when Vocab.param_f(id) then return id
+        when Vocab.param_a(id) then return id
+      end
+    end
+    i = 0
+    for id in [:hp, :mp, :atk, :def, :mat, :mdf, :agi, :luk]
+      case text
+        when Vocab.param_a(id) then return i
+        when Vocab.param_f(id) then return i
+      end
+      i += 1
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_xparam_id
+  #--------------------------------------------------------------------------
+  def get_xparam_id(text)
+    for id in 0..9  
+      case text
+        when Vocab.xparam_f(id) then return id
+        when Vocab.xparam_a(id) then return id
+      end
+    end
+    i = 0
+    for id in [:hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg]
+      case text
+        when Vocab.xparam_a(id) then return i
+        when Vocab.xparam_f(id) then return i
+      end
+      i += 1
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_sparam_id
+  #--------------------------------------------------------------------------
+  def get_sparam_id(text)
+    for id in 0..9  
+      case text
+        when Vocab.sparam_f(id) then return id
+        when Vocab.sparam_a(id) then return id
+      end
+    end
+    i = 0
+    for id in [:tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr]
+      case text
+        when Vocab.sparam_a(id) then return i
+        when Vocab.sparam_f(id) then return i
+      end
+      i += 1
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_cparam_id
+  #--------------------------------------------------------------------------
+  def get_cparam_id(text)
+    for id in [:hcr, :tcr_y, :gcr, :cdr, :wur, :hp_physical, :mp_physical, :hp_magical, :mp_magical, :gut]
+      case text
+        when Vocab.cparam_a(id) then return id
+        when Vocab.cparam_f(id) then return id
+      end
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_ele_id
+  #--------------------------------------------------------------------------
+  def get_ele_id(text)
+    for id in 1..$data_system.elements.size-1
+      case text; when Vocab.element(id) then return id; end
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_class_id
+  #--------------------------------------------------------------------------
+  def get_class_id(text)
+    for id in 1..$data_classes.size-1
+      case text; when Vocab.classes(id) then return id; end
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_ele_id
+  #--------------------------------------------------------------------------
+  def get_state_id(text)
+    for id in 1..$data_states.size-1
+      case text; when Vocab.state(id) then return id; end
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_command_id
+  #--------------------------------------------------------------------------
+  def get_command_id(text)
+    for id in 0..22
+      case text; when Vocab.command(id) then return id; end      
+    end
+    return nil
+  end
+  #--------------------------------------------------------------------------
+  # * New method: get_item_status_id
+  #--------------------------------------------------------------------------
+  def get_item_status_id(text)
+    return nil unless $imported["YEA-ItemMenu"] || $imported["YEA-ShopOptions"]
+    for id in [:hp_recover, :mp_recover, :tp_recover, :tp_gain]
+      case text
+        when Vocab::item_status(id) then return id
+      end
+    end
+    return nil
+  end 
+  #--------------------------------------------------------------------------
+  # * New method: get_armor_type_id
+  #--------------------------------------------------------------------------
+  def get_armor_types_id(text)
+    for id in 1...$data_system.armor_types.size
+      case text
+        when Vocab.armor_types(id) then return id
+      end
+    end
+    return nil
+  end 
+  #--------------------------------------------------------------------------
+  # * New method: get_weapon_type_id
+  #--------------------------------------------------------------------------
+  def get_weapon_types_id(text)
+    for id in 1...$data_system.weapon_types.size
+      case text
+        when Vocab.weapon_types(id) then return id
+      end
+    end
+    return nil
+  end 
+  #--------------------------------------------------------------------------
+  # * New method: get_skill_type_id
+  #--------------------------------------------------------------------------
+  def get_skill_types_id(text)
+    for id in 1...$data_system.skill_types.size
+      case text
+        when Vocab.skill_types(id) then return id
+      end
+    end
+    return nil
+  end 
+  #--------------------------------------------------------------------------
+  # * Draw Icon
+  #     enabled : Enabled flag. When false, draw semi-transparently.
+  #--------------------------------------------------------------------------
+  def draw_icon(icon_index, x, y, enabled = true)
+    if icon_index == nil && $TEST
+      msg = "The icon number #{icon_index} does not exist or you forgot to assign it properly."
+      msgbox(msg)
+      return
+    end
+    bitmap = Cache.system("Iconset")
+    rect = Rect.new(icon_index % 16 * 24, icon_index / 16 * 24, 24, 24)
+    contents.blt(x, y, bitmap, rect, enabled ? 255 : translucent_alpha)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: use_vocab_icon?
+  #--------------------------------------------------------------------------
+  def use_vocab_icon?(text)
+    return true if vocab_icon(text) != 0 || nil
+    return false
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: vocab_icon
+  #--------------------------------------------------------------------------
+  def vocab_icon(text)
+    icon  = 0
+    return icon = Icon.words(text) if BM::ICON::HASH[:words][text] != nil
+    return icon = Icon.basic(get_basic_id(text)) if (get_basic_id(text) != nil && BM::ICON::HASH[:basic][:auto])
+    return icon = Icon.param(get_param_id(text)) if (get_param_id(text) != nil && BM::ICON::HASH[:param][:auto])
+    return icon = Icon.xparam(get_xparam_id(text)) if (get_xparam_id(text) != nil && BM::ICON::HASH[:xparam][:auto])
+    return icon = Icon.sparam(get_sparam_id(text)) if (get_sparam_id(text) != nil && BM::ICON::HASH[:sparam][:auto])
+    return icon = Icon.cparam(get_cparam_id(text)) if (get_cparam_id(text) != nil && BM::ICON::HASH[:cparam][:auto])
+    return icon = Icon.element(get_ele_id(text)) if (get_ele_id(text) != nil && BM::ICON::HASH[:element][:auto])
+    return icon = Icon.class(get_class_id(text)) if (get_class_id(text) != nil && BM::ICON::HASH[:class][:auto])
+    return icon = Icon.state(get_state_id(text)) if (get_state_id(text) != nil && BM::ICON::HASH[:state][:auto])
+    return icon = Icon.item_status(get_item_status_id(text)) if get_item_status_id(text) != nil
+    return icon = Icon.exp if text == Vocab.exp
+    return (icon == nil) ? 0 : icon 
+  end
+  #--------------------------------------------------------------------------
+  # * Draw Number (Gold Etc.) with Currency Unit
+  #--------------------------------------------------------------------------
+  alias :bm_icon_dcv :draw_currency_value
+  def draw_currency_value(value, unit, x, y, width)
+    icon = Icon.currency
+    bm_icon_dcv(value, unit, x, y, width)
+    draw_icon(icon, x, y)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: draw_icon_text
+  #--------------------------------------------------------------------------
+  alias :bm_icon_dt :draw_text
+  def draw_text(*args, &block)
+    if args[0].is_a?(Rect)
+      rect = args[0]
+      text = args[1]
+      if use_vocab_icon?(text)
+        rect1 = Rect.new(rect.x+24,rect.y,rect.width-24,rect.height)
+        args[0] = rect1
+      end
+    else
+      text = args[4]
+      x, y, width, height = *args[0..3]
+      if x == nil; x=0; end
+      if y == nil; y=0; end
+      if width == nil; width = 0; end
+      if height == nil; height = 0; end
+      rect = Rect.new(x, y, width, height)
+      if use_vocab_icon?(text)
+        args[0] += 24; args[2] -=24
+      end
+    end
+    draw_icon(vocab_icon(text), rect.x, rect.y) if use_vocab_icon?(text)  
+    if use_vocab_icon?(text) 
+      return if BM::ICON::HASH[:words][text] != nil && !BM::ICON::HASH[:words][:show_words]
+      return if get_basic_id(text) != nil && !BM::ICON::HASH[:basic][:show_words]
+      return if get_param_id(text) != nil && !BM::ICON::HASH[:param][:show_words]
+    end
+    bm_icon_dt(*args, &block)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_gender_icon
+  #--------------------------------------------------------------------------
+  def draw_gender_icon(actor, x, y)
+    return unless $imported["BubsGenderFunctions"]
+    icon = BM::ICON::HASH[:gender][:genderless]
+    icon = BM::ICON::HASH[:gender][:male] if actor.male?
+    icon = BM::ICON::HASH[:gender][:female] if actor.female?
+    return unless icon != 0
+    draw_icon(icon, x, y)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_gender_icon
+  #--------------------------------------------------------------------------
+  def draw_align_icon(actor, x, y)
+    return unless $imported[:bm_align]
+    icon = BM::ICON::HASH[:align][actor.align_id]
+    return unless icon != 0
+    draw_icon(icon, x, y)
+  end
+end
+#==============================================================================
+# ** Window_Command
+#==============================================================================
+class Window_Command < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * old Method: draw_text
+  #--------------------------------------------------------------------------
+  def draw_text(*args, &block); bm_icon_dt(*args, &block); end
+  #--------------------------------------------------------------------------
+  # * New Method: use_icon?
+  #--------------------------------------------------------------------------
+  def use_icon?(text)
+    if command_icon(text) != 0; return true
+    else; return false
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: command_icon
+  #--------------------------------------------------------------------------
+  def command_icon(text)
+    if $imported["YEA-CommandWindowIcons"]
+      return icon = YEA::COMMAND_WINDOW_ICONS::ICON_HASH[text] if YEA::COMMAND_WINDOW_ICONS::ICON_HASH.include?(text)
+    end
+    return icon = vocab_icon(text) if use_vocab_icon?(text)
+    return icon = Icon.command(get_command_id(text)) if get_command_id(text) != nil
+    return icon = Icon.skill_types(get_skill_types_id(text)) if get_skill_types_id(text) != nil
+    return icon = Icon.armor_types(get_armor_types_id(text)) if get_armor_types_id(text) != nil
+    return icon = Icon.weapon_types(get_weapon_types_id(text)) if get_weapon_types_id(text) != nil            
+    return (icon == nil) ? 0 : icon  
+  end  
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_item
+  #--------------------------------------------------------------------------
+  def draw_item(index)
+    enabled = command_enabled?(index)
+    change_color(normal_color, enabled)
+    rect = item_rect_for_text(index)
+    text = command_name(index)
+    if use_icon?(text)
+      draw_icon_text(rect.clone, text, alignment, enabled)
+      draw_icon(Icon.disable, rect.x, rect.y, @index == index) if !enabled
+    else
+      bm_icon_dt(rect, text, alignment)
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: draw_icon_text
+  #--------------------------------------------------------------------------
+  def draw_icon_text(rect, text, alignment, enabled)
+    cw = text_size(text).width
+    icon = command_icon(text)
+    draw_icon(Icon.border, rect.x, rect.y, enabled)
+    draw_icon(icon, rect.x, rect.y, enabled)
+    rect.x += 24
+    rect.width -= 24
+    draw_text(rect, text, alignment)
+  end  
+end 
+#==============================================================================
+# ** Window_MenuCommand
+#==============================================================================
+class Window_MenuCommand < Window_Command
+  #--------------------------------------------------------------------------
+  # * Alias: command_icon
+  #--------------------------------------------------------------------------
+  alias :bm_xs_ci :command_icon
+  def command_icon(text)
+    if $imported["XAIL-XS-MENU_DELUX"]
+      $game_system.get_menu.each {|key, value|
+      name = value[0] == "" ? key.id2name.capitalize : value[0]
+      icon = value[2]
+      return icon if name == text
+      }
+    end
+    bm_xs_ci(text)
+  end
+end
+#==============================================================================
+# ** Window_SkillStatus
+#==============================================================================
+class Window_SkillStatus < Window_Base
+  #--------------------------------------------------------------------------
+  # * alias: Refresh
+  #--------------------------------------------------------------------------
+  alias :bm_icons_ref :refresh
+  def refresh
+    return unless @actor
+    bm_icons_ref
+    draw_gender_icon(@actor, 108, line_height*3)
+    draw_align_icon(@actor, 108+24, line_height*3)
+  end
+end
+#==============================================================================
+# ** Window_EquipActor
+#==============================================================================
+class Window_EquipActor < Window_Base
+  #--------------------------------------------------------------------------
+  # * alias: Refresh
+  #--------------------------------------------------------------------------
+  if $imported["YEA-AceEquipEngine"] && !$imported[:bm_vk_equip]
+  alias :bm_icons_ref :refresh 
+  def refresh
+    return unless @actor
+    bm_icons_ref
+    draw_gender_icon(@actor, 108, line_height*3)
+    draw_align_icon(@actor, 108+24, line_height*3)
+  end
+  end
+end
+#==============================================================================
+class Window_MateriaList < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * draw_icon
+  #--------------------------------------------------------------------------
+  def draw_icon(icon_index, x, y, enabled = true, item = 0)
+    bitmap = Cache.system("Iconset")
+    rect = Rect.new(icon_index % 16 * 24, icon_index / 16 * 24, 24, 24)
+    contents.blt(x, y, bitmap, rect, enabled ? 255 : translucent_alpha)
+  end
+end
+
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

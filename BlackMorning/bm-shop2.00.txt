@@ -1,0 +1,296 @@
+#==============================================================================
+# ** Blackmorning -> Advanced Shop
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 2.00
+#  released 01/29/2014
+#  updated 11/05/2015
+# - added background image change
+# - can change opacity of shop scene
+#==============================================================================
+#  - INTRODUCTION -
+# - shows animated actor graphic for equipable items
+# - shows atk, def, mat, mdf changes for all equipment
+#==============================================================================
+# ? Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above BM - Icon. 
+# If using BM - Advanced Menu, put this below it.
+# Remember to save.
+#==============================================================================
+module BM
+  module SHOP
+    ITEM_EQUIPPED = "--Equipped--"
+    PARAM_FONT_SIZE = 18
+    PARAM_SHOWN = 2..7
+    PARAM_ICONS={
+      2 => 900, # ATK,   ATtacK power
+      3 => 901, # DEF,   DEFense power
+      4 => 902, # MAT,   Magic ATtack power
+      5 => 903, # MDF,   Magic DeFense power
+      6 => 904, # AGI,   AGIlity
+      7 => 905, # LUK,   LUcK  
+    } # DO NOT REMOVE
+    ACTOR_OPTIONS = { # for shop status window
+      :image   => :char,  #:face or :char to show scaled down face or the character graphic
+      :walk_char    => true, # walking actor graphics (may slow down game in menu) 
+      :image_width  => 40, # width of face
+      :image_height => 50, # height of actor bar
+    }# DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Background Options
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    BG_OPTIONS ={
+      :win_opacity  => 255,    # window opacity for menu
+      :show_bg_img  => false, # show background image
+      :bg_image     => "Wallpaper",   # image name (Located in Graphics/System
+      :bg_opacity   => 255,  # background image opacity
+      :bg_scroll_x  => 0,    # horizontal movement
+      :bg_scroll_y  => 0,    # vertical movement
+    }# DO NOT REMOVE
+  end
+end
+#==============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+#==============================================================================
+$imported ||= {}
+$imported[:bm_shop] = 2.00
+BM.required(:bm_shop, :bm_base, 1.10, :above)
+#==============================================================================
+# ** Scene_Shop
+#==============================================================================
+class Scene_Shop < Scene_MenuBase
+  alias :bm_shop_start :start
+  def start
+    bm_shop_start
+    bm_win_opacity
+  end
+  #--------------------------------------------------------------------------
+  def bm_win_opacity
+    @gold_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @gold_window.nil?
+    @help_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @help_window.nil?
+    @command_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @command_window.nil?
+    unless $imported["YEA-ShopOptions"]
+      @dummy_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @dummy_window.nil?
+    end
+    @number_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @number_window.nil?
+    @status_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @status_window.nil?
+    @buy_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @buy_window.nil?
+    @category_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @category_window.nil?
+    @sell_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @sell_window.nil?    
+    @data_window.opacity = BM::SHOP::BG_OPTIONS[:win_opacity] unless @data_window.nil?    
+  end
+  #--------------------------------------------------------------------------
+  # * Create Background Image
+  #--------------------------------------------------------------------------
+  alias :bm_shop_cb :create_background
+  def create_background
+    return bm_shop_cb unless custom_bg? && !$imported[:bm_menustatus] 
+    custom_background
+  end
+  #--------------------------------------------------------------------------
+  def custom_bg?
+    return false if BM::SHOP::BG_OPTIONS[:bg_image] == "" 
+    return false unless BM::SHOP::BG_OPTIONS[:show_bg_img]
+    return true
+  end
+  #--------------------------------------------------------------------------
+  def custom_background
+    @background_sprite = Plane.new
+    @background_sprite.bitmap = Cache.system(BM::SHOP::BG_OPTIONS[:bg_image])
+    @background_sprite.opacity = BM::SHOP::BG_OPTIONS[:bg_opacity]
+  end
+  #--------------------------------------------------------------------------
+  def update_background
+    return if BM::SHOP::BG_OPTIONS[:bg_scroll_x] == 0 && BM::SHOP::BG_OPTIONS[:bg_scroll_y] == 0
+    @background_sprite.ox += BM::SHOP::BG_OPTIONS[:bg_scroll_x]
+    @background_sprite.oy += BM::SHOP::BG_OPTIONS[:bg_scroll_y]
+  end
+  #--------------------------------------------------------------------------
+  # * Update_Background_Image
+  #--------------------------------------------------------------------------
+  alias :bm_shop_u :update
+  def update
+    bm_shop_u
+    update_background if custom_bg? && !$imported[:bm_menustatus] 
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: create_actor_window
+  #--------------------------------------------------------------------------
+  alias :bm_shop_caw :create_actor_window if $imported["YEA-ShopOptions"]
+  def create_actor_window
+    bm_shop_caw    
+    @actor_window.hide
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: show_sub_window
+  #--------------------------------------------------------------------------
+  def show_sub_window(window)
+    @status_window.hide
+    @gold_window.hide
+    window.show.activate
+  end  
+  #--------------------------------------------------------------------------
+  # * Overwrite: hide_sub_window
+  #--------------------------------------------------------------------------
+  def hide_sub_window(window)
+    @status_window.show
+    @gold_window.show
+    window.hide.deactivate
+    @command_window.activate
+  end
+end
+#==============================================================================
+# ** Window_ShopStatus
+#==============================================================================
+class Window_ShopStatus < Window_Base
+  #--------------------------------------------------------------------------
+  # * Alias: Initialize
+  #--------------------------------------------------------------------------
+  alias :bm_shop_init :initialize
+  def initialize(x, y, width, height)
+    @walk = 0
+    @step = 0  # 0 is left, 1 is right
+    @animtime = 0
+    @e_images = {}
+    bm_shop_init(x, y, width, height)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: update
+  #--------------------------------------------------------------------------
+  alias :bm_shop_up :update
+  def update
+    super
+    if BM::SHOP::ACTOR_OPTIONS[:walk_char] && BM::SHOP::ACTOR_OPTIONS[:image] == :char
+      ani_motion 
+      update_page
+    else; bm_shop_up
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Number of Actors Displayable at Once
+  #--------------------------------------------------------------------------
+  def page_size; member_size; end
+  #--------------------------------------------------------------------------
+  # new method: member_size
+  #--------------------------------------------------------------------------
+  def member_size
+    ms = $game_party.max_battle_members
+    minh = BM::SHOP::ACTOR_OPTIONS[:image_height]
+    loop do
+      maxh = (contents.height - line_height*1.5)/ ms
+      if maxh >= minh; return ms; end
+      ms -= 1
+    end
+    return ms
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: col_height
+  #--------------------------------------------------------------------------
+  def col_height; (contents.height - line_height*1.5)/page_size; end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Equipment Information
+  #--------------------------------------------------------------------------
+  def draw_equip_info(x, y)
+    shown = BM::SHOP::PARAM_SHOWN; size = 0
+    for id in shown; size += 1; end      
+    width = (contents.width-32)/size; dx = 0
+    contents.font.size = BM::SHOP::PARAM_FONT_SIZE
+    for id in shown
+      icon1 = BM::SHOP::PARAM_ICONS[id]
+      draw_icon(Icon.param(id), x + 36 + width*dx, y - line_height) if $imported[:bm_icon]
+      draw_icon(icon1, x + 36 + width*dx, y - line_height)
+      dx += 1
+    end
+    status_members.each_with_index do |actor, i|
+      draw_actor_equip_info(x, y + col_height*i, actor)
+    end
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrit: draw_actor_equip_info
+  #--------------------------------------------------------------------------
+  def draw_actor_equip_info(dx, dy, actor)
+    enabled = actor.equippable?(@item)
+    change_color(normal_color, enabled)
+    item1 = current_equipped_item(actor, @item.etype_id)
+    iwidth = BM::SHOP::ACTOR_OPTIONS[:image_width]
+    iheight = BM::SHOP::ACTOR_OPTIONS[:image_height]
+    image_rect = Rect.new(dx, dy, iwidth, iheight)
+    contents.fill_rect(dx, dy, contents_width, col_height, standby_color(actor))
+    if BM::SHOP::ACTOR_OPTIONS[:image] == :face
+      draw_icon_face(actor, image_rect, enabled)
+    elsif BM::SHOP::ACTOR_OPTIONS[:image] == :char
+      draw_actor_graphic(actor, dx + 16, dy + iheight - 6, enabled)
+    end
+    y = (iheight - line_height)/2
+    draw_actor_param_change(dx + 32, dy + y, actor, item1) if enabled
+  end  
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_actor_param_change
+  #--------------------------------------------------------------------------
+  def draw_actor_param_change(x, y, actor, item1)
+    shown = BM::SHOP::PARAM_SHOWN; size = 0
+    for id in shown; size += 1; end      
+    width = (contents.width-32)/size; dx = 0
+    dx = 0
+    for id in shown
+      if @item == item1
+        draw_text(x, y, contents.width - x, line_height, BM::SHOP::ITEM_EQUIPPED, 1)
+        return
+      end
+      change = actor_param_change_value(actor, item1, id)
+      change_color(param_change_color(change))
+      text = change.group
+      text = "+" + text if change >= 0
+      text = "--" if change == 0
+      draw_icon(Icon.param_compare(change), x + width*dx, y) if $imported[:bm_icon]  
+      draw_text(x + width*dx, y, width, line_height, text, 1)
+      dx += 1
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: actor_param_change_value
+  #--------------------------------------------------------------------------
+  def actor_param_change_value(actor, item1, id)
+    n = @item.params[id] - (item1 ? item1.params[id] : 0)
+    return n unless $imported["YEA-EquipDynamicStats"]
+    n += @item.per_params[id] * actor.param_base(id) rescue 0
+    n += $game_variables[@item.var_params[id]] rescue 0
+    n -= item1.per_params[id] * actor.param_base(id) rescue 0
+    n -= $game_variables[item1.var_params[id]] rescue 0
+    return n
+  end
+end
+
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

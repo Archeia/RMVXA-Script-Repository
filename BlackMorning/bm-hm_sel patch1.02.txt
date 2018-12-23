@@ -1,0 +1,170 @@
+#===============================================================================
+#Blackmorning HM_SEL Patch
+# version 1.02
+# released 05/01/2014
+#===============================================================================
+# -adds month names and variable id
+# -adds weekday names and variable id
+# -allows better size configuration for Clock Hud
+module HM_SEL
+  # names for the months, should have same amount as HM_SEL::DAYS_IN_MONTH array
+  MONTH_NAMES = {
+    1=> "Spring",
+    2=> "Summer",
+    3=> "Autumn",
+    4=> "Winter",
+  }
+  MONTH_NAME_ID = 30 #to give month name to a variable
+  
+  WEEKDAY_NAMES = {
+    1 => "Mon",
+    2 => "Tue",
+    3 => "Wed",
+    4 => "Thu",
+    5 => "Fri",
+    6 => "Sat",
+    7 => "Sun",
+  }
+  WEEKDAY_NAME_ID = 31 #to give weekday name to a variable
+  #Determines the size of the clock HUD.  
+  CLOCK_WIDTH = 131 
+  CLOCK_HEIGHT = 68
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#===============================================================================
+if $sel_time_frame != nil
+  BM::SELCHAR_CALENDER = true
+else
+  BM::SELCHAR_CALENDER = false
+end
+#===============================================================================
+module HM_SEL
+  #Method used to get the text that will be used to determine what is
+  #in the window.  In this case time.  
+  if $sel_time_frame != nil  
+  def self.current_time?
+    hour = $game_variables[HOUR]
+    minute = $game_variables[MIN]
+    
+    if hour == 0
+      hour = 12
+    else
+      if hour >= 13
+        hour -= 12
+      end
+    end
+    
+    #.to_s when used on a number's variable, turns it into a string?
+    if hour < 10
+      hour = ' ' + hour.to_s
+    else
+      hour.to_s
+    end
+    
+    if minute < 10
+      minute = '0' + minute.to_s
+    else
+      minute.to_s
+    end
+    
+    #Resulting text for the method.
+    return hour.to_s + ':' + minute.to_s
+  end
+  
+  def self.am_pm?
+    if $game_variables[HOUR] >= 12
+      return 'PM'
+    else
+      return 'AM'
+    end
+  end
+  
+  def self.day_of_week?
+    case $game_variables[DAYA]
+    when 1;return 'Mon'
+    when 2;return 'Tue'
+    when 3;return 'Wed'
+    when 4;return 'Thur'
+    when 5;return 'Fri'
+    when 6;return 'Sat'
+    when 7;return 'Sun'
+    else;return 'ERR'
+    end
+  end
+  
+  def self.day_of_month?
+    day = $game_variables[DAYB]
+    if day < 10
+      return ' ' + day.to_s
+    else
+      return day.to_s
+    end
+  end
+  
+  def self.month?
+    case $game_variables[MONTH]
+    when 1;return 'Spring'
+    when 2;return 'Summer'
+    when 3;return 'Fall'
+    when 4;return 'Winter'
+    else;return 'ERROR'
+    end
+  end
+  
+  def month_name
+    $game_variables[MONTH_NAME_ID]	 =	MONTH_NAMES[month]
+  end
+  
+  def weekday_name
+    $game_variables[WEEKDAY_NAME_ID] =	WEEKDAY_NAMES[day_a]
+  end
+  
+  def self.day_of_week?
+    WEEKDAY_NAMES[$game_variables[DAYA]]
+  end
+  
+  def self.month?
+    MONTH_NAMES[$game_variables[MONTH]]
+  end
+  
+  def self.year?
+    return $game_variables[YEAR]
+  end
+  #===============================================================================
+  # * Clock Window
+  # CLOCK_POSITION determines where to set it's coordinates
+  #===============================================================================
+  class Window_Clock < Window_Base
+    def initialize
+      @minute = $game_variables[MIN]
+      @hour = $game_variables[HOUR]
+      @day = $game_variables[DAYA]
+      width = CLOCK_WIDTH; height = CLOCK_HEIGHT
+      dx = Graphics.width - width
+      dy = Graphics.height - height
+      case CLOCK_POSITION
+      when 1
+        super(0, 0, width, height)
+      when 2
+        super(dx, 0, width, height)
+      when 3
+        super(0, dy, width, height)
+      when 4
+        super(dx, dy, width, height)
+      when 5
+        super(dx/2, 0, width, height)
+      when 6
+        super(dx/2, dy, width, height)
+      end
+      self.z = 50
+      contents.font.size = 20
+      self.contents.draw_text(12,0,100,24,HM_SEL.top_calendar_line?)
+      self.contents.draw_text(8,20,125,24,HM_SEL.bottom_calendar_line?)
+      self.visible = $hm_sel_game_time_clock_visibility unless $hm_sel_game_time_clock_visibility.nil?
+    end
+  end
+  end
+end

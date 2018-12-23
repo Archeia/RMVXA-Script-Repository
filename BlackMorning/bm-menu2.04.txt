@@ -1,0 +1,1189 @@
+#==============================================================================
+# ** Blackmorning -> Advanced Animated Menu
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 2.04
+#  updated May/02/2016
+# - removed redunant coding
+# - fixed faceset size
+# - added options for upper and lower information on columns
+#==============================================================================
+#  - INTRODUCTION -
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#  - adds custom music to the menu screens (Idea from Tsukihime)
+#  - column-based actor status on main menu screen (idea from Galv's)
+#  - gold window includes variables, time, steps, etc (Idea from Yanfly Scene Menu ReDux)
+#  - location window on main menu screen
+#  - animated actor graphics in menu screen
+#  - change input button for calling the menu
+#  - large portrait for actor if available 
+#    found in folder assigned to portrait/bust images (see BM-Base)
+#    file format -  face_name-face-index
+#    (size:270px x 290px)
+#==============================================================================
+# ? Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above Main. 
+# If using Yanfly Shop Options, put this below it.
+# Remember to save.
+#==============================================================================
+module BM
+  module MENU
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Visual Options
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    OPTIONS ={
+      :spacing      => 0,   # spacing between actors in menu status
+      :actor_skip   => true, # skip the actor selection if there's only one party member
+      :right_side   => true, # menu to shift to the right side. status to left
+      :button       => :B,   # input button used to call the main menu (default = Input::B)
+    }# DO NOT REMOVE 
+    BG_OPTIONS ={
+      :win_opacity  => 255,    # window opacity for menu
+      :show_bg_img  => true, # show background image
+      :bg_image     => "StarlitSky",   # image name (Located in Graphics/System
+      :bg_opacity   => 255,  # background image opacity
+      :bg_scroll_x  => 0,    # horizontal movement
+      :bg_scroll_y  => 0,    # vertical movement
+    }# DO NOT REMOVE 
+    LOCATION_WINDOW_OPTIONS ={
+      :show     => true, # show/hide location window 
+      :bottom   => true, # location window to appear on the bottom of the screen
+      :location => true, # show current location
+      :time     => false, # show game time 
+      :hm_time  => false, # show in-game date if using Harvest Moon calender
+    }# DO NOT REMOVE
+    ACTOR_OPTIONS ={ # for main menu
+      :ani_sel_face  => false,# bounces selected face/bust
+      :show_char     => true, # shows walking character graphic
+      :ani_sel_char  => true, # bounces selected character graphic
+      :walk_char     => true, # walking actor graphics (may slow down game in menu) 
+      :gauge_fontsize=> 16,   # font size for gauges
+    }# DO NOT REMOVE
+    ROW_OPTIONS ={
+      :hpmp_box      => true, # darkens area around hp,mp,tp gauges
+      :hpmp_box_color => Color.new(0, 0, 0, 128), 
+      :show_tp       => true, # shows tp gauge below hp and mp
+    }
+    COLUMN_OPTIONS ={
+      :use_columns   => true, # if false, use rows 
+      :use_bust      => true, # if none available, uses face
+      :bust_height   => 250,  # size of image you want (cropped to size)
+      :bust_offset_y => 70,   # bust offset from the base of column (default 80)
+      :face_offset_y => 80,   # face offset from top of column (default 72)
+      # data info
+      # :name, :class, :level, :level_gauge, :exp_gauge, :bm_align, :hp, :mp, :tp, :exp
+      # UPPER INFO - drawn at top of column
+      :upper_info      => [:name, :class,:level_gauge,:bm_align],
+      :upper_box       => [false,true, false, false], #highlights individually
+      :upper_box_color => Color.new(0, 0, 0, 128), 
+      # lower INFO - drawn at bottom of column
+      # - walking graphic & state icons appear above right lower info
+      :lower_info      => [:hp, :mp, :tp, :exp],
+      :lower_box       => [true, true, true, true], #highlights individually  
+      :lower_box_color => Color.new(0, 0, 0, 128), 
+    }
+    #------------------------------------------------------------------------------
+    # Multi Variable Window (Imported - Yanfly Scene Menu ReDux)
+    #------------------------------------------------------------------------------
+    VARIABLE_OPTIONS = {
+      :use_window => true, # alters the gold window at the bottom to display variables, time, steps, etc.
+      :style => 0,
+      #:style => 0, #goes below menu commands window (vertical)
+      #:style => 1, #goes opposite location window (horizontal)
+      #:style => 2, #goes right below location window (horizontal)
+      #:style => 3, #goes right above location window (horizontal)
+    }
+    VARIABLES_SHOWN = [-3, -2, -1, 0, 1, 61] # Variables will be shown in this order.
+    # (-3 is location, -2 is steps, -1 is time, 0 is gold)
+    VARIABLES_HASH  ={ # Note that value zero must exist.
+    # type = 0 => text only
+    # type = 1 => icon only
+    # type = 2 => text & icon left
+    # type = 3 => text left, icon right
+    # type = 4 => value only centered
+    # VarID => [Icon, Text, type, text color#]
+          -3 => [ 0, "map", 4, 0], #location
+          -2 => [ 467, "Steps", 1, 0],# steps taken
+          -1 => [ 280, "Time", 0, 0], # game time
+           0 => [ 262, "Gold", 0, 0], # gold
+           # add variables as you like
+           1 => [ 341, "Jewels", 2, 1], 
+           61 => [342, "Vari", 3, 1],
+    }# DO NOT REMOVE
+    #------------------------------------------------------------------------------
+    # Music in Menu - (Imported - Tsukihime)
+    #------------------------------------------------------------------------------
+    MUSIC ={
+      :switch => 2, # switch_id to prevent menu music from auto-playing
+      :bgm    => "Theme4",
+      :mvol   => 100,
+      :bgs    => "",
+      :svol   => 100,
+    }# DO NOT REMOVE
+    #-----------------------------------------------------------------------------
+    # MENU_PARTICLES
+    #-----------------------------------------------------------------------------
+    # The particles needs to be in Graphics/System/ folder.
+    PARTICLE_OPTIONS = {
+      :show       => true,        # Show particles floating in menu
+      :name       => "Menu_Particles", # found in Graphics/System/
+      :num        => 20,          # number of particles found
+      :rand_color => true,        # random color change of particles
+      :blend_type => 0,           # (0 - Normal, 1 - Add, 2 - Substract)
+      :speed_x    => "(1 + rand(3))", # horizontal speed
+      :speed_y    => "(1 + rand(3))", # vertical speed
+      :a          => "(1 + rand(1))", # angle
+      :z          => "1000", 
+    }
+  end
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#===============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_menustatus] = 2.04
+BM.required(:bm_menustatus, :bm_base, 1.23, :above)
+#=============================================================================#
+# ** Module Icon
+#=============================================================================#
+module Icon
+  def self.currency; BM::MENU::VARIABLES_HASH[0][0]; end
+  def self.steps; BM::MENU::VARIABLES_HASH[-2][0]; end
+  def self.time; BM::MENU::VARIABLES_HASH[-1][0]; end
+  def self.variable(id); BM::MENU::VARIABLES_HASH[id][0]; end
+end
+#=============================================================================#  
+class Game_Party < Game_Unit
+  #--------------------------------------------------------------------------
+  # * Get Actor Selected on Menu Screen
+  #--------------------------------------------------------------------------
+  alias :bm_ma :menu_actor
+  def menu_actor
+    if $game_party.members.size < 2 && BM::MENU::OPTIONS[:actor_skip]
+      members[0]
+    else 
+      bm_ma
+    end
+  end
+end
+#=============================================================================#
+# ** Game Temp
+#=============================================================================# 
+class Game_Temp  
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :map_bgm
+  attr_accessor :map_bgs
+  attr_reader :menu_bgm
+  attr_reader :menu_bgs
+  #--------------------------------------------------------------------------
+  # * Alias: Object Initialization
+  #--------------------------------------------------------------------------
+  alias :bm_menu_init :initialize
+  def initialize
+    bm_menu_init
+    @map_bgm = RPG::BGM.new
+    @map_bgs = RPG::BGS.new
+    @menu_bgm = RPG::BGM.new(BM::MENU::MUSIC[:bgm],BM::MENU::MUSIC[:mvol])
+    @menu_bgs = RPG::BGS.new(BM::MENU::MUSIC[:bgs],BM::MENU::MUSIC[:svol])
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: replay map music
+  #--------------------------------------------------------------------------
+  def replay_map_music
+    @map_bgm.replay
+    @map_bgs.replay
+  end
+end
+#=============================================================================#
+# ** Game System
+#=============================================================================#
+class Game_System
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :menu_music_disabled
+  #--------------------------------------------------------------------------
+  # * New Method: menu music disabled
+  #--------------------------------------------------------------------------
+  def menu_music_disabled=(val)
+    $game_switches[BM::MENU::MUSIC[:switch]] = val
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: menu music disabled
+  #--------------------------------------------------------------------------
+  def menu_music_disabled; $game_switches[BM::MENU::MUSIC[:switch]]; end
+end
+#==============================================================================
+# ** Menu Particles
+#==============================================================================
+class Menu_Particles < Sprite
+  #--------------------------------------------------------------------------
+  # * Initialize
+  #--------------------------------------------------------------------------             
+  def initialize(viewport = nil)
+    super(viewport)
+    @speed_part_x = 0
+    @speed_part_y = 0
+    @speed_part_a = 0
+    self.bitmap = Cache.system(BM::MENU::PARTICLE_OPTIONS[:name])
+    self.tone.set(rand(255),rand(255), rand(255), 255) if BM::MENU::PARTICLE_OPTIONS[:rand_color]
+    self.blend_type = BM::MENU::PARTICLE_OPTIONS[:blend_type]
+    self.z = eval(BM::MENU::PARTICLE_OPTIONS[:z])
+    reset_setting
+  end   
+  #--------------------------------------------------------------------------
+  # * Reset Setting
+  #--------------------------------------------------------------------------               
+  def reset_setting
+    zoom = (50 + rand(100)) / 100.1
+    self.zoom_x = zoom
+    self.zoom_y = zoom
+    self.x = rand(Graphics.width)
+    self.y = rand(Graphics.height)
+    self.opacity = 0
+    @speed_part_x = eval(BM::MENU::PARTICLE_OPTIONS[:speed_x])
+    @speed_part_y = eval(BM::MENU::PARTICLE_OPTIONS[:speed_y])
+    @speed_part_a = eval(BM::MENU::PARTICLE_OPTIONS[:a])
+  end  
+  #--------------------------------------------------------------------------
+  # * Dispose
+  #--------------------------------------------------------------------------               
+  def dispose
+    super; self.bitmap.dispose if self.bitmap != nil
+  end   
+  #--------------------------------------------------------------------------
+  # * Update
+  #--------------------------------------------------------------------------               
+  def update
+    super
+    self.x += @speed_part_x
+    self.y -= @speed_part_y
+    self.angle += @speed_part_a      
+    self.opacity += 5
+    reset_setting if can_reset_setting?
+  end    
+  #--------------------------------------------------------------------------
+  # * Can Reset Setting
+  #--------------------------------------------------------------------------                 
+  def can_reset_setting?
+    hmin = -50
+    hmax = Graphics.height
+    wmax = Graphics.width
+    wmin = -50
+    return true if self.y < hmin if @speed_part_y > 0
+    return true if self.y > hmax if @speed_part_y < 0
+    return true if self.x < wmin if @speed_part_x < 0
+    return true if self.x > wmax if @speed_part_x > 0
+    return false
+  end 
+end   
+#==============================================================================
+# ** PARTICLE_EX
+#==============================================================================
+module PARTICLE_EX  
+  #--------------------------------------------------------------------------
+  # * Start
+  #--------------------------------------------------------------------------          
+  def start
+    super; create_particles
+  end   
+  #--------------------------------------------------------------------------
+  # * Create Particles
+  #--------------------------------------------------------------------------  
+  def create_particles
+    return unless BM::MENU::PARTICLE_OPTIONS[:show]
+    @particles_sprite =[]
+    for i in 0...BM::MENU::PARTICLE_OPTIONS[:num]
+      @particles_sprite.push(Menu_Particles.new(nil))
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # * Dispose Particles
+  #--------------------------------------------------------------------------    
+  def dispose_particles
+    return if @particles_sprite == nil
+    @particles_sprite.each {|sprite| sprite.dispose }
+  end     
+  #--------------------------------------------------------------------------
+  # * Terminate
+  #--------------------------------------------------------------------------  
+  def terminate
+    super; dispose_particles
+  end      
+  #--------------------------------------------------------------------------
+  # * Update
+  #--------------------------------------------------------------------------  
+  def update
+    super; update_particles
+  end
+  #--------------------------------------------------------------------------
+  # * Update Particles
+  #--------------------------------------------------------------------------  
+  def update_particles
+    return if @particles_sprite == nil
+    @particles_sprite.each {|sprite| sprite.update }
+  end 
+end
+#=============================================================================#
+# ** Window_MenuStatus 
+#=============================================================================#
+class Window_MenuStatus < Window_Selectable
+  alias :bm_menu_dai :draw_actor_icons
+end
+#=============================================================================#
+# ** Window_MenuStatus2 
+#=============================================================================#
+class Window_MenuStatus2 < Window_MenuStatus 
+  #--------------------------------------------------------------------------
+  # * Alias: Object Initialization
+  #--------------------------------------------------------------------------
+  alias :bm_menu_init :initialize
+  def initialize(*args, &block)
+    @walk = 0
+    @step = 0  # 0 is left, 1 is right
+    @animtime = 0
+    @e_images = {}
+    bm_menu_init(*args, &block)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: update
+  #--------------------------------------------------------------------------
+  alias :bm_menu_up :update
+  def update
+    bm_menu_up
+    ani_motion if BM::MENU::ACTOR_OPTIONS[:walk_char] 
+  end 
+  #--------------------------------------------------------------------------
+  def location_height
+    i = 0
+    return 0 unless BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+    i += 1 if BM::MENU::LOCATION_WINDOW_OPTIONS[:location]
+    i += 1 if BM::MENU::LOCATION_WINDOW_OPTIONS[:time]
+    i += 1 if BM::MENU::LOCATION_WINDOW_OPTIONS[:hm_time] && BM::SELCHAR_CALENDER
+    return fitting_height(i) if i != 0
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Get Window Height
+  #--------------------------------------------------------------------------
+  def window_height
+    if BM::MENU::VARIABLE_OPTIONS[:style] == 0
+      Graphics.height - location_height
+    else
+      Graphics.height - location_height - fitting_height(1)
+    end
+  end 
+  #--------------------------------------------------------------------------
+  # * Overwrite: draw_face
+  #--------------------------------------------------------------------------
+  def draw_face(face_name, face_index, x, y, enabled = true)
+    bitmap = Cache.face(face_name)
+    bh = [item_height,96].min
+    bw = [item_width,96].min
+    rect = Rect.new(face_index % 4 * 96, face_index / 4 * 96, bw, bh)
+    contents.blt(x, y, bitmap, rect, enabled ? 255 : translucent_alpha)
+    bitmap.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: face_background
+  #--------------------------------------------------------------------------
+  def face_background(actor, x, y, width = 96, height = 96)
+    bh = [item_height,96].min
+    bw = [item_width,96].min
+    contents.fill_rect(x, y, bw, bh, standby_color(actor))
+  end
+  ##
+  #traditional - 1 column, many rows
+  ##
+  if BM::MENU::COLUMN_OPTIONS[:use_columns] == false
+    #--------------------------------------------------------------------------
+    # * alias: Draw Item
+    #--------------------------------------------------------------------------
+    alias :bm_menu_wmsdi :draw_item
+    def draw_item(index)
+      actor = $game_party.members[index]
+      rect = item_rect(index)
+      bm_menu_wmsdi(index)
+      dy = rect.y
+      if BM::MENU::ACTOR_OPTIONS[:show_char]
+        if $imported["MrTS_Simple_Battle_Rows"]
+          row = actor.battle_row
+          contents.fill_rect(rect.x, rect.y + item_height-line_height*2,32,line_height*2,normal_color)
+          contents.fill_rect(rect.x + 2, rect.y + 2 + item_height-line_height*2,32-4,line_height-4,standby_color(actor))
+          contents.fill_rect(rect.x + 2, rect.y + 2 + item_height-line_height,32-4,line_height-4,standby_color(actor))
+        else
+          row = 0
+        end      
+        dy = rect.y + @walk*5 if index == @index && self.active && BM::MENU::ACTOR_OPTIONS[:ani_sel_char]
+        draw_actor_graphic(actor, rect.x + 16, dy + item_height - row*line_height, battle_party?(actor)) 
+      end
+    end
+    #--------------------------------------------------------------------------
+    # overwrite method: draw_actor_simple_status
+    #--------------------------------------------------------------------------
+    def draw_actor_simple_status(actor, dx, dy)
+      dy -= line_height/2
+      draw_actor_name(actor, dx, dy)
+      dw = contents.width - dx - 124
+      draw_actor_class(actor, dx + 120, dy, dw)
+      h = item_height/3 - 2
+      draw_actor_icons(actor, dx, dy + h * 2)
+      if BM::MENU::ROW_OPTIONS[:hpmp_box]
+        rect2 = Rect.new(dx + 120, dy + line_height, item_width, item_height - line_height)
+        color = BM::MENU::ROW_OPTIONS[:hpmp_box_color]
+        contents.fill_rect(rect2, color) 
+      end
+      contents.font.size = BM::MENU::ACTOR_OPTIONS[:gauge_fontsize]
+      draw_actor_level(actor, dx, dy + h * 1)
+      draw_actor_hp(actor, dx + 120, dy + h * 1, dw)
+      if BM::MENU::ROW_OPTIONS[:show_tp]
+        draw_actor_mp(actor, dx + 120, dy + h * 2, dw/2)
+        draw_actor_tp(actor, dx + 120 + dw/2, dy + h * 2, dw/2)
+      else 
+        draw_actor_mp(actor, dx + 120, dy + h * 2, dw)
+      end
+    end
+  ##  
+  #Vertical - many columns, 1 row
+  ##
+  elsif BM::MENU::COLUMN_OPTIONS[:use_columns]
+  include Horizontal_Fix
+  #--------------------------------------------------------------------------
+  # * Get Digit Count
+  #--------------------------------------------------------------------------
+  def col_max; return member_size; end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Get Spacing for Items Arranged Side by Side
+  #--------------------------------------------------------------------------
+  def spacing; BM::MENU::OPTIONS[:spacing]; end
+  #--------------------------------------------------------------------------
+  # new method: member_size
+  #--------------------------------------------------------------------------
+  def member_size
+    ms = $game_party.max_battle_members    
+    minw = (Graphics.width - 160 - standard_padding * 2 + spacing) / 5 - spacing
+    loop do
+      maxw = (width - standard_padding * 2 + spacing) / ms - spacing
+      if maxw >= minw; return ms; end
+      ms -= 1
+    end
+    return ms
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Get Item Height
+  #--------------------------------------------------------------------------
+  def item_height; (height - standard_padding * 2); end
+  #--------------------------------------------------------------------------
+  # * Set Top Col
+  #--------------------------------------------------------------------------
+  def top_col=(col)
+    col = 0 if col < 0
+    @member_count = $game_party.members.count
+    col = col_max + @member_count if col > col_max + @member_count
+    self.ox = col * (item_width + spacing)
+  end  
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Item
+  #--------------------------------------------------------------------------
+  def draw_item(index)
+    reset_font_settings
+    actor = $game_party.members[index]
+    rect = item_rect(index)
+    draw_item_background(index)
+    rect_main = Rect.new(rect.x+2, rect.y-2, item_width-4, item_height-2)
+    py = contents.height
+    contents.fill_rect(rect.x,rect.y,rect.width+spacing,rect.height, standby_color(actor)) unless battle_party?(actor)
+    dy = rect_main.y
+    dy = rect_main.y + @walk*5 if index == @index && self.active && BM::MENU::ACTOR_OPTIONS[:ani_sel_face]
+    py = contents.height + @walk*5 if index == @index && self.active && BM::MENU::ACTOR_OPTIONS[:ani_sel_face]
+    if Object.portrait_exist?("#{actor.face_name}-#{actor.face_index}") && BM::MENU::COLUMN_OPTIONS[:use_bust]
+      draw_actor_portrait(actor, rect.x, py - BM::MENU::COLUMN_OPTIONS[:bust_offset_y], battle_party?(actor))
+    else
+      draw_actor_face(actor, rect.x, dy + BM::MENU::COLUMN_OPTIONS[:face_offset_y], battle_party?(actor))
+    end
+    dy = contents.height - (line_height - 4) * BM::MENU::COLUMN_OPTIONS[:lower_info].size
+    draw_actor_icons(actor, rect.x + item_width - 24, dy, 150)
+    if BM::MENU::ACTOR_OPTIONS[:show_char]
+      if $imported["MrTS_Simple_Battle_Rows"]
+        row = actor.battle_row
+        contents.fill_rect(rect.x, dy - 4 - line_height*2,32,line_height*2,normal_color)
+        contents.fill_rect(rect.x + 2, dy - 4 + 2 - line_height*2, 32-4, line_height-4,standby_color(actor))
+        contents.fill_rect(rect.x + 2, dy - 4 + 2 - line_height, 32-4, line_height-4,standby_color(actor))
+      else
+        row = 0
+      end
+      dy = dy + @walk*5 if index == @index && self.active && BM::MENU::ACTOR_OPTIONS[:ani_sel_char]
+      draw_actor_graphic(actor, rect.x + 16, dy - 6 - row*line_height, battle_party?(actor)) 
+    end
+    draw_upper_actor_info(actor, rect_main.x, rect_main.y, rect_main.width)
+    draw_lower_actor_info(actor, rect_main.x, contents.height, rect_main.width)    
+  end
+  #--------------------------------------------------------------------------
+  def draw_upper_actor_info(actor, x, y, width = item_width)
+    info = BM::MENU::COLUMN_OPTIONS[:upper_info]
+    for i in 0..info.size-1
+      if BM::MENU::COLUMN_OPTIONS[:upper_box][i]      
+        color = BM::MENU::COLUMN_OPTIONS[:upper_box_color]
+        contents.fill_rect(x-2, y, width+4, line_height-4, color)
+      end
+      y = draw_actor_info(actor, info[i], x, y, width)
+    end
+  end
+  #--------------------------------------------------------------------------
+  def draw_lower_actor_info(actor, x, y, width = item_width)
+    info = BM::MENU::COLUMN_OPTIONS[:lower_info]
+    dy = y - (line_height - 4) * info.size
+    for i in 0..info.size-1
+      if BM::MENU::COLUMN_OPTIONS[:lower_box][i]      
+        color = BM::MENU::COLUMN_OPTIONS[:lower_box_color]
+        contents.fill_rect(x-2, dy, width+4, line_height-4, color) 
+      end
+      dy = draw_actor_info(actor, info[i], x, dy, width)
+    end
+  end
+  #--------------------------------------------------------------------------
+  def draw_actor_info(actor, i, x, y, width)
+    contents.font.size = Font.default_size
+    case i 
+    when :name
+      draw_actor_name(actor, x, y)
+    when :class
+      draw_actor_class(actor, x, y)   
+    when  :level,:level_gauge, :bm_align, :hp, :mp, :tp, :exp, :exp_gauge
+      contents.font.size = BM::MENU::ACTOR_OPTIONS[:gauge_fontsize]
+      case i
+      when :level_gauge
+        draw_actor_exp_gauge(actor, x + 4, y, width - 4)
+        draw_actor_level(actor, x + 4, y, width - 4)        
+      when :level            
+        draw_actor_level(actor, x + 4, y, width - 4)
+      when :bm_align
+        return unless $imported[:bm_align]
+        draw_actor_align_gauge(actor, x + 4, y, width - 4)
+      when :hp
+        draw_actor_hp(actor, x + 4, y, width - 4)
+      when :mp
+        draw_actor_mp(actor, x + 4, y, width - 4)
+      when :tp
+        draw_actor_tp(actor, x + 4, y, width - 4)
+      when :exp_gauge
+        draw_actor_exp_gauge(actor, x + 4, y, width - 4)
+      when :exp
+        draw_actor_exp(actor, x + 4, y, width - 4)
+      end
+    end
+    return y += line_height - 4  
+  end
+  #--------------------------------------------------------------------------
+  # * Draw State and Buff/Debuff Icons
+  #--------------------------------------------------------------------------
+  def draw_actor_icons(actor, x, y, height = 130)
+    icons = (actor.state_icons + actor.buff_icons)[0, height / 24]
+    icons.each_with_index {|n, i| draw_icon(n, x, y - 24 * i) }
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Portrait Graphic
+  #--------------------------------------------------------------------------
+  def draw_portrait(portrait_name, x, y, enabled = true)
+    bitmap = Cache.portrait(portrait_name)
+    width = [item_width,bitmap.width].min
+    height = BM::MENU::COLUMN_OPTIONS[:bust_height]
+    rect = Rect.new(bitmap.width/2 - width/2, 0, width, height)
+    contents.blt(x, y-rect.height, bitmap, rect, enabled ? 255 : translucent_alpha)
+    bitmap.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: Draw Actor Face Graphic
+  #--------------------------------------------------------------------------
+  if $imported[:bm_align]
+  def draw_actor_face(actor, x, y, *args)
+    bm_align_daf(actor, x, y, *args)
+  end
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Name
+  #--------------------------------------------------------------------------
+  def draw_actor_name(actor, x, y)
+    contents.font.bold = true
+    contents.font.color = hp_color(actor)
+    contents.draw_text(x, y, item_width, line_height, actor.name,1)
+    contents.font.color = normal_color
+    contents.font.bold = false
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Class
+  #--------------------------------------------------------------------------
+  def draw_actor_class(actor, x, y ,width = item_width)
+    contents.font.italic = true
+    contents.font.color = normal_color
+    unless $imported["YEA-ClassSystem"]
+      text = actor.class.name
+    else
+      if actor.subclass.nil?
+        text = actor.class.name
+      else
+        fmt = YEA::CLASS_SYSTEM::SUBCLASS_TEXT
+        text = sprintf(fmt, actor.class.name, actor.subclass.name)
+      end
+      text = sprintf("%s %s",text, actor.class_level(actor.class_id))
+    end
+    contents.draw_text(x, y, width, line_height, text ,1)
+    contents.font.italic = false
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw actor level
+  #--------------------------------------------------------------------------
+  def draw_actor_level(actor, x, y, width = item_width)
+    change_color(system_color)
+    draw_text(x + 10, y, 32, line_height, Vocab::level)
+    change_color(normal_color)
+    draw_text(x, y, width - 10, line_height, actor.level.group, 2)
+  end  
+  #--------------------------------------------------------------------------
+  def draw_actor_exp_gauge(actor, x, y, width = item_width)
+    draw_gauge(x, y, width, exp_rate(actor), exp_gauge1, exp_gauge2)
+  end  
+  #--------------------------------------------------------------------------
+  def draw_actor_exp(actor, x, y, width = item_width)
+    draw_actor_exp_gauge(actor, x, y, width)
+    change_color(system_color)
+    draw_text(x, y, 30, line_height, "#{Vocab.exp} needed")
+    s2 = actor.max_level? ? "-------" : actor.next_level_exp - actor.exp
+    change_color(normal_color)
+    draw_text(x, y, width, line_height, s2, 2)
+  end
+end
+end
+#==============================================================================
+# ** Window_Location
+#==============================================================================
+class Window_location < Window_Base
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #--------------------------------------------------------------------------
+  def initialize(x, y)
+    super(x, y, Graphics.width, window_height)
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  def window_height
+    i = 0
+    i += 1 if BM::MENU::LOCATION_WINDOW_OPTIONS[:location]
+    i += 1 if BM::MENU::LOCATION_WINDOW_OPTIONS[:time]
+    i += 1 if hm_time
+    return fitting_height(i) if i != 0
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  # * Refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    contents.clear
+    index = 0
+    for type in [:location, :time, :hm_time]
+      index = draw_item(type, index)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * draw item
+  #--------------------------------------------------------------------------
+  def draw_item(type, index)
+    sw = self.width - 32
+    dy = line_height * index
+    text3 = " "
+    case type
+    when :location
+      return index unless BM::MENU::LOCATION_WINDOW_OPTIONS[:location]
+      text1 = "Location :"; text2 = location?
+      @location_index = index
+    when :time 
+      return index unless BM::MENU::LOCATION_WINDOW_OPTIONS[:time]
+      text1 = "Time :"; text2 = game_time
+      @time_index = index
+    when :hm_time
+      return index unless hm_time
+      text1 = "Date :"; text2 = date?
+      text3 = " - (PAUSED) - "
+      @hm_time_index = index
+    else; return index
+    end
+    cx = contents.text_size(text1).width
+    change_color(system_color)
+    draw_text(4, dy, sw, line_height, text1)
+    change_color(normal_color)
+    draw_text(4 + cx, dy, sw, line_height, text3)
+    draw_text(0, dy, sw, line_height, text2, 2)
+    return index + 1
+  end
+  #--------------------------------------------------------------------------
+  # * location
+  #--------------------------------------------------------------------------
+  def location?
+    return " " if $game_map.display_name.empty?
+    return $game_map.display_name
+  end
+  #--------------------------------------------------------------------------
+  # * date
+  #--------------------------------------------------------------------------
+  def date?
+    date = HM_SEL.day_of_week? + ' ' + HM_SEL.month? + ' ' + HM_SEL.day_of_month?
+    year = HM_SEL.year?
+    time = HM_SEL.current_time? + HM_SEL.am_pm?
+    return sprintf("%s, %d, %s", date, year, time)
+  end
+  #--------------------------------------------------------------------------
+  def hm_time
+    return true if BM::MENU::LOCATION_WINDOW_OPTIONS[:hm_time] && BM::SELCHAR_CALENDER
+    return false
+  end
+  #--------------------------------------------------------------------------
+  # update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    return unless BM::MENU::LOCATION_WINDOW_OPTIONS[:time] or hm_time
+    refresh
+  end
+end
+#===============================================================================
+# ** Window_MultiVariableWindow
+#===============================================================================
+class Window_MultiVariableWindow < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * initialize
+  #--------------------------------------------------------------------------
+  def initialize
+    if BM::MENU::VARIABLE_OPTIONS[:style] == 0
+      dh = 32 + 24 * BM::MENU::VARIABLES_SHOWN.size
+      dw = 160
+    else
+      dh = fitting_height(1)
+      dw = Graphics.width
+    end
+    dy = Graphics.height - dh
+    super(0, dy, dw, dh)
+    @data = []
+    refresh
+  end  
+  #--------------------------------------------------------------------------
+  # * Get Number of Items
+  #--------------------------------------------------------------------------
+  def item_max
+    @data ? @data.size : 1
+  end
+  #--------------------------------------------------------------------------
+  # * Create Item List
+  #--------------------------------------------------------------------------
+  def make_item_list
+    for i in BM::MENU::VARIABLES_SHOWN
+      next unless BM::MENU::VARIABLES_HASH.include?(i)
+      @time_index = @data.size if i == -1
+      @data.push(i)
+    end
+  end
+  #--------------------------------------------------------------------------
+  if BM::MENU::VARIABLE_OPTIONS[:style] != 0
+    include Horizontal_Fix
+  end
+  #--------------------------------------------------------------------------
+  # * refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    make_item_list
+    super
+  end  
+  #--------------------------------------------------------------------------
+  # * draw_item
+  #--------------------------------------------------------------------------
+  def draw_item(index)
+    item = @data[index]
+    if item
+      rect = item_rect(index)
+      contents.clear_rect(rect)
+      value = item_type(item)
+      if value[3] == 0 #text only
+        contents.font.color = system_color
+        contents.draw_text(rect, value[2])
+        cw = contents.text_size(value[2]).width
+        contents.font.color = value[4]
+        contents.draw_text(rect.x + cw, rect.y, rect.width - cw, rect.height, value[0], 2)
+      end
+      if value[3] == 1 # icon only 
+        draw_icon(value[1], rect.x, rect.y)
+        cw = 24 
+        cw = 0 if value[1] == 0
+        contents.font.color = value[4]
+        contents.draw_text(rect.x + cw, rect.y, rect.width - cw, rect.height, value[0], 2)
+      end
+      if value[3] == 2 # icon+text 
+        draw_icon(value[1], rect.x, rect.y)
+        contents.font.color = system_color
+        contents.draw_text(rect.x + 24, rect.y, rect.width, rect.height, value[2])
+        cw = contents.text_size(value[2]).width + 24
+        contents.font.color = value[4]
+        contents.draw_text(rect.x + cw, rect.y, rect.width - cw, rect.height, value[0], 2)
+      end
+      if value[3] == 3 # icon+text split
+        draw_icon(value[1], rect.x + rect.width - 24, rect.y)
+        contents.font.color = system_color
+        contents.draw_text(rect.x, rect.y, rect.width, rect.height, value[2])
+        cw = contents.text_size(value[2]).width
+        contents.font.color = value[4]
+        contents.draw_text(rect.x + cw, rect.y, rect.width - 24 - cw, rect.height, value[0], 2)
+      end
+      if value[3] == 4 # value only 
+        contents.font.color = value[4]
+        contents.draw_text(rect.x, rect.y, rect.width, rect.height, value[0], 1)
+      end
+    end   
+  end    
+  #--------------------------------------------------------------------------
+  # * location
+  #--------------------------------------------------------------------------
+  def location?
+    return " " if $game_map.display_name.empty?
+    return $game_map.display_name
+  end
+  #--------------------------------------------------------------------------
+  # * item_type
+  #--------------------------------------------------------------------------
+  def item_type(index)
+    case index
+    when -3 # draw map
+      value = location?
+      icon = BM::MENU::VARIABLES_HASH[index][0]
+      text = BM::MENU::VARIABLES_HASH[index][1]
+      type = BM::MENU::VARIABLES_HASH[index][2]
+      color = text_color(BM::MENU::VARIABLES_HASH[index][3])
+    when -2 # Draw Steps
+      value = $game_party.steps.group
+      icon = Icon.steps
+      text = BM::MENU::VARIABLES_HASH[index][1]
+      type = BM::MENU::VARIABLES_HASH[index][2]
+      color = text_color(BM::MENU::VARIABLES_HASH[index][3])
+    when -1 # Draw Time
+      value = game_time
+      icon = Icon.time
+      text = BM::MENU::VARIABLES_HASH[index][1] 
+      type = BM::MENU::VARIABLES_HASH[index][2]
+      color = text_color(BM::MENU::VARIABLES_HASH[index][3])
+    when 0 # Draw Gold
+      value = $game_party.gold.group
+      icon = Icon.currency
+      text = Vocab.currency_unit
+      type = BM::MENU::VARIABLES_HASH[index][2]
+      color = text_color(BM::MENU::VARIABLES_HASH[index][3])
+    else # Draw Variables
+      value = $game_variables[index]
+      icon = Icon.variable(index)
+      text = BM::MENU::VARIABLES_HASH[index][1]
+      type = BM::MENU::VARIABLES_HASH[index][2]
+      color = text_color(BM::MENU::VARIABLES_HASH[index][3])
+    end
+    return [value, icon, text, type, color]
+  end
+  #--------------------------------------------------------------------------
+  # update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    return unless BM::MENU::VARIABLES_SHOWN.include?(-1)
+    if game_time != (Graphics.frame_count / Graphics.frame_rate)
+      draw_item(@time_index)
+    end
+  end
+end
+#==============================================================================
+# ** Window_FileStatus
+#==============================================================================
+class Window_FileStatus < Window_Base
+  #--------------------------------------------------------------------------
+  # * Alias: Initialize
+  #--------------------------------------------------------------------------
+  alias :bm_menu_init :initialize
+  def initialize(*args, &block)
+    @walk = 0
+    @step = 0  # 0 is left, 1 is right
+    @animtime = 0
+    @e_images = {}
+    bm_menu_init(*args, &block)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: update
+  #--------------------------------------------------------------------------
+  alias :bm_menu_up :update
+  def update
+    super
+    if BM::MENU::OPTIONS[:animated]
+      ani_motion 
+    else
+      bm_menu_up
+    end
+  end
+end
+#===============================================================================
+# ** Scene_MenuBase
+#===============================================================================
+class Scene_MenuBase < Scene_Base
+  include PARTICLE_EX if BM::MENU::PARTICLE_OPTIONS[:show] && BM::MENU::PARTICLE_OPTIONS[:name] != ""
+  #--------------------------------------------------------------------------
+  # * Create Background Image
+  #--------------------------------------------------------------------------
+  alias :bm_menu_cb :create_background
+  def create_background
+    return bm_menu_cb unless custom_bg?
+    custom_background
+  end
+  #--------------------------------------------------------------------------
+  def custom_bg?
+    return false if BM::MENU::BG_OPTIONS[:bg_image] == "" 
+    return false unless BM::MENU::BG_OPTIONS[:show_bg_img]
+    return true
+  end
+  #--------------------------------------------------------------------------
+  def custom_background
+    @background_sprite = Plane.new
+    @background_sprite.bitmap = Cache.system(BM::MENU::BG_OPTIONS[:bg_image])
+    @background_sprite.opacity = BM::MENU::BG_OPTIONS[:bg_opacity]
+  end
+  #--------------------------------------------------------------------------
+  # * Update_Background_Image
+  #--------------------------------------------------------------------------
+  alias :bm_menu_u :update
+  def update
+    bm_menu_u
+    update_background if custom_bg?
+  end
+  #--------------------------------------------------------------------------
+  def update_background
+    return if BM::MENU::BG_OPTIONS[:bg_scroll_x] == 0 && BM::MENU::BG_OPTIONS[:bg_scroll_y] == 0
+    @background_sprite.ox += BM::MENU::BG_OPTIONS[:bg_scroll_x]
+    @background_sprite.oy += BM::MENU::BG_OPTIONS[:bg_scroll_y]
+  end
+end
+#===============================================================================
+# ** Scene_Menu
+#===============================================================================
+class Scene_Menu < Scene_MenuBase
+  #--------------------------------------------------------------------------
+  # * Alias: start
+  #--------------------------------------------------------------------------
+  alias :bm_menu_start :start
+  def start
+    create_location_window
+    bm_menu_start
+    @command_window.height = Graphics.height - location_height - @gold_window.height
+    relocate_windows
+    play_menu_bgm unless $game_system.menu_music_disabled
+    bm_win_opacity
+  end
+  #--------------------------------------------------------------------------
+  def bm_win_opacity
+    @command_window.opacity = BM::MENU::BG_OPTIONS[:win_opacity] unless @command_window.nil?
+    @location_window.opacity = BM::MENU::BG_OPTIONS[:win_opacity] unless @location_window.nil?
+    @gold_window.opacity = BM::MENU::BG_OPTIONS[:win_opacity] unless @gold_window.nil?
+    @status_window.opacity = BM::MENU::BG_OPTIONS[:win_opacity] unless @status_window.nil?
+  end
+  #--------------------------------------------------------------------------
+  def location_height
+    return 0 unless BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+    return @location_window.height
+  end
+  #--------------------------------------------------------------------------
+  def location_y
+    return 0 unless BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+    return @location_window.y
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: relocate windows
+  #--------------------------------------------------------------------------
+  def relocate_windows
+    @command_window.y = location_height
+    #:style => 1, #goes opposite location window (horizontal)
+    #:style => 2, #goes right below location window (horizontal)
+    #:style => 3, #goes right above location window (horizontal)
+    if BM::MENU::OPTIONS[:right_side]
+      @command_window.x = Graphics.width - @command_window.width
+      @gold_window.x = Graphics.width - @gold_window.width
+      @status_window.x = 0
+    end
+    
+    if BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @location_window.y = Graphics.height - location_height if BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+      @command_window.y = 0
+      @gold_window.y = @command_window.height
+      @status_window.y = 0
+    end
+    
+    if BM::MENU::VARIABLE_OPTIONS[:style] == 1 && !BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @gold_window.y = Graphics.height - @gold_window.height
+    elsif BM::MENU::VARIABLE_OPTIONS[:style] == 2 && !BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @gold_window.y = location_y + location_height
+      @command_window.y += @gold_window.height
+      @status_window.y = @command_window.y
+    elsif BM::MENU::VARIABLE_OPTIONS[:style] == 3 && !BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @location_window.y = @gold_window.height if BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+      @gold_window.y = 0
+      @command_window.y += @gold_window.height
+      @status_window.y = @command_window.y
+    end
+    
+    if BM::MENU::VARIABLE_OPTIONS[:style] == 1 && BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @gold_window.y = 0
+      @command_window.y += @gold_window.height
+      @status_window.y = @command_window.y
+    elsif BM::MENU::VARIABLE_OPTIONS[:style] == 2 && BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @location_window.y -= @gold_window.height if BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+      @gold_window.y = location_y + location_height 
+    elsif BM::MENU::VARIABLE_OPTIONS[:style] == 3 && BM::MENU::LOCATION_WINDOW_OPTIONS[:bottom]
+      @gold_window.y = location_y - @gold_window.height
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Create Status Window
+  #--------------------------------------------------------------------------
+  def create_status_window
+    @status_window = Window_MenuStatus2.new(@command_window.width, location_height)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Create Location Window
+  #--------------------------------------------------------------------------
+  def create_location_window
+    return unless BM::MENU::LOCATION_WINDOW_OPTIONS[:show]
+    @location_window = Window_location.new(0, 0)
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: [Skill], [Equipment] and [Status] Commands
+  #--------------------------------------------------------------------------
+  alias :bm_menu_cp :command_personal
+  def command_personal
+    if $game_party.members.size < 2 && BM::MENU::OPTIONS[:actor_skip]
+      on_personal_ok
+    else
+      bm_menu_cp
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: Create Gold Window
+  #--------------------------------------------------------------------------
+  alias :bm_menu_cgw :create_gold_window
+  def create_gold_window
+    if BM::MENU::VARIABLE_OPTIONS[:use_window]
+      @gold_window = Window_MultiVariableWindow.new
+    else
+      bm_menu_cgw
+    end
+  end 
+  #--------------------------------------------------------------------------
+  # * New Method: play menu bgm
+  #--------------------------------------------------------------------------
+  def play_menu_bgm
+    return if $game_system.menu_music_disabled
+    $game_temp.menu_bgm.play if $game_temp.menu_bgm
+    $game_temp.menu_bgs.play if $game_temp.menu_bgs
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: pre terminate
+  #--------------------------------------------------------------------------
+  alias :bm_menu_pt :pre_terminate
+  def pre_terminate
+    bm_menu_pt
+    return if $game_system.menu_music_disabled
+    $game_temp.replay_map_music if SceneManager.scene_is?(Scene_Map)
+  end
+end
+#===============================================================================
+# ** Scene_Map
+#===============================================================================
+class Scene_Map < Scene_Base
+  #--------------------------------------------------------------------------
+  # * Overwrite: Determine if Menu is Called due to Cancel Button
+  #--------------------------------------------------------------------------
+  def update_call_menu
+    if $game_system.menu_disabled || $game_map.interpreter.running?
+      @menu_calling = false
+    else
+      @menu_calling ||= Input.trigger?(BM::MENU::OPTIONS[:button])
+      call_menu if @menu_calling && !$game_player.moving?
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: call menu
+  #--------------------------------------------------------------------------
+  alias :bm_menu_cm :call_menu
+  def call_menu
+    if !$game_system.menu_music_disabled
+      $game_temp.map_bgm = RPG::BGM.last
+      $game_temp.map_bgs = RPG::BGS.last
+    end
+    bm_menu_cm
+  end
+end
+#==============================================================================
+# ** Scene_ItemBase
+#==============================================================================
+class Scene_ItemBase < Scene_MenuBase
+  alias :bm_cce :check_common_event
+  def check_common_event
+    bm_cce
+    return if $game_system.menu_music_disabled
+    $game_temp.replay_map_music if $game_temp.common_event_reserved?
+  end
+  #--------------------------------------------------------------------------
+  # * Create Actor Window
+  #--------------------------------------------------------------------------
+  alias :bmcm_caw :create_actor_window
+  def create_actor_window
+    bmcm_caw    
+    @actor_window.visible = false
+  end
+end
+
+#==============================================================================
+# ** Scene_Load
+#------------------------------------------------------------------------------
+#  This class performs load screen processing. 
+#==============================================================================
+class Scene_Load < Scene_File
+  #--------------------------------------------------------------------------
+  # * Processing When Load Is Successful
+  #--------------------------------------------------------------------------
+  alias :bmcm_ols :on_load_success
+  def on_load_success
+    bmcm_ols
+    $game_map.autoplay
+  end
+end
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

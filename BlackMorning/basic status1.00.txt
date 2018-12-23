@@ -1,0 +1,317 @@
+#==============================================================================
+# ** Blackmorning -> Basic Status
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.00
+#  released 03/05/2014
+#==============================================================================
+#  - INTRODUCTION -
+# - parameters in Status Window in graphical format.
+# - allows the actor's portraits to appear or not in different status windows
+#==============================================================================
+# ¨‹ Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base and but above ¨‹ Main. 
+# Remember to save.
+#==============================================================================
+module BM
+  module STATUS
+    PORTRAIT={
+      :show => true,
+      :x    => Graphics.width/2,
+      :y    => 24*7,
+    } # DO NOT REMOVE
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Chart Options 
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    ITEMS_SHOWN={
+      :param   => 2..7,  # parameters you want shown
+    } # DO NOT REMOVE      
+    # * format of info
+    # 0 .. numbers
+    # 1 .. chart
+    # 2 .. chart & numbers (: combined will use only chart)
+    # 1, 2 must have ?KGC bitmap expansion?.
+    INFO_STYLE = {
+      :param   => 2,
+    } # DO NOT REMOVE
+    CHART_FONT_SIZE = 18
+    NUMBER_STYLE = {
+      :param   => 0,
+    } # DO NOT REMOVE
+    #------------------------------------------------------------------------
+    # Chart Icons
+    #------------------------------------------------------------------------
+    # Assign Icons for the charts (parameters, elements and states)
+    # *Note* If you're using BM-Icons, and want to use those same icons, 
+    # remove or comment (#) them out. (states would be made default from database)
+    CHART_ICONS={
+    :param => {
+      2 => 900, # ATK,   ATtacK power
+      3 => 901, # DEF,   DEFense power
+      4 => 902, # MAT,   Magic ATtack power
+      5 => 903, # MDF,   Magic DeFense power
+      6 => 904, # AGI,   AGIlity
+      7 => 905, # LUK,   LUcK  
+      }, # DO NOT REMOVE
+    } # DO NOT REMOVE
+    #------------------------------------------------------------------------
+    # Chart Graphics
+    #------------------------------------------------------------------------
+    LINE_COLOR = {
+      :param   => Color.new(228,  55,  28),
+    } # DO NOT REMOVE
+    BASE_COLOR = {
+      :param   => Color.new(128, 192, 255),
+    } # DO NOT REMOVE
+    FLASH_COLOR = {
+      :param   => Color.new(228,  55,  28),
+    } # DO NOT REMOVE
+    CHART_HIGHQUALITY = true    
+    CHART_FRAME_RATE = 0.2 # speed of blinking chart (<1 slower, >1 faster)
+  end
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#==============================================================================
+# ** module BM
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_basicstatus] = 1.00
+BM.required(:bm_basicstatus, :bm_base, 1.00, :above)
+BM.required(:bm_basicstatus, "BitmapExtension", true, :above)    
+#==============================================================================
+# ** Window_Status
+#==============================================================================
+class Window_Status < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #--------------------------------------------------------------------------
+  def initialize(actor)
+    super(0, 0, Graphics.width, Graphics.height)
+    @actor = actor
+    @duration = 0
+    #@element_chart_sprite = Sprite_Base.new
+    #@state_chart_sprite = Sprite_Base.new
+    @param_chart_sprite = Sprite_Base.new
+    #create_chart_sprite(@element_chart_sprite)
+    #create_chart_sprite(@state_chart_sprite)
+    create_chart_sprite(@param_chart_sprite)
+    refresh
+    activate
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: Draw Parameters
+  #--------------------------------------------------------------------------
+  def draw_parameters(x, y)
+    x = draw_window_contents(x,y)
+    width = 264 - x
+    6.times {|i| draw_actor_param(@actor, x, y + line_height * i, i + 2, width) }
+  end
+  #--------------------------------------------------------------------------
+  # new method: draw_window_contents
+  #--------------------------------------------------------------------------
+  def draw_window_contents(x, y)
+    if BM::STATUS::PORTRAIT[:show]
+      draw_actor_portrait(@actor, BM::STATUS::PORTRAIT[:x], BM::STATUS::PORTRAIT[:y], false)
+    end
+    w = line_height * 12 - y
+    x = draw_actor_chart(x-46, y-20, w, :param)   
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_chart
+  #--------------------------------------------------------------------------
+  def draw_actor_chart(x, y, w, chart)
+    r  = (w) / 2
+    cx = x + r + 28
+    cy = y + r + 28
+    pw = (Bitmap.smoothing_mode == TRGSSX::SM_ANTIALIAS ? 2 : 1)
+    items_shown = BM::STATUS::ITEMS_SHOWN[chart]
+    size = 0 
+    for i in items_shown; size += 1; end
+    draw_chart_line(cx, cy, r, size, 3, pw, chart)
+    points = []
+    items_shown.each_with_index { |e, i|
+      icon1 = chart_icon(chart, e)
+      n   = graph_values(chart,e)
+      n   = 100 - n if BM::STATUS::NUMBER_STYLE[chart] == 1   
+      n   = [[n, -100].max, 200].min
+      dr  = r * (n + 100) / 100 / 3
+      rad = Math::PI * (360.0 * i / size - 90.0) / 180.0
+      dx  = cx + Integer(dr * Math.cos(-rad))
+      dy  = cy + Integer(dr * Math.sin(rad))
+      points << [dx, dy]
+      dx = cx + Integer((r + 14) * Math.cos(-rad)) - 12
+      dy = cy + Integer((r + 14) * Math.sin(rad))  - 12
+      draw_icon(icon1, dx, dy)
+      i += 1
+    }
+    draw_chart(cx, cy, r, points, pw, chart)
+    draw_chart_flash(x, y, r, points, pw, chart)
+    return (x + cx + r + 42)
+  end  
+  #--------------------------------------------------------------------------
+  def graph_values(chart,id)
+    n = 0
+    case chart
+    when :element
+      n    = eval("@actor.#{chart}_rate(#{id})*100")
+      if $imported["YEA-ElementReflect"] && @actor.element_reflect_rate(id) != 0
+        n = @actor.element_reflect_rate(id)
+        n = [n - 2.0, -0.01].min
+      end      
+      if $imported["Elemental_Modifiers"]
+        n  = (@actor.element_resist_rate(id) * 100).to_i 
+      end
+    when :state
+      n    = eval("@actor.#{chart}_rate(id)*100")
+      n    = 0 if @actor.state_resist_set.include?(id)
+    when :param
+      n    = param_ratio(@actor, id) * 100
+    end
+    return n
+  end
+  #--------------------------------------------------------------------------
+  def chart_icon(chart, id)
+    icon = eval("Icon.#{chart}(id)") if $imported[:bm_icon]
+    if chart == :state && !BM::STATUS::CHART_ICONS[chart].include?(id)
+      icon = $data_states[id].icon_index
+    elsif BM::STATUS::CHART_ICONS[chart].include?(id)
+      icon = BM::STATUS::CHART_ICONS[chart][id]
+    else 
+      icon = 0
+    end    
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart_line
+  #--------------------------------------------------------------------------
+  def draw_chart_line(cx, cy, r, n, breaks, pw, chart)
+    color = BM::STATUS::BASE_COLOR[chart].clone
+    contents.draw_regular_polygon(cx, cy, r, n, color, pw)
+    color.alpha = color.alpha * 5 / 8
+    contents.draw_spoke(cx, cy, r, n, color, pw)
+    (1..breaks).each { |i|
+      contents.draw_regular_polygon(cx, cy, r * i / breaks, n, color, pw)
+    }
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart
+  #--------------------------------------------------------------------------
+  def draw_chart(cx, cy, r, points, pw, chart)
+    contents.draw_polygon(points, BM::STATUS::LINE_COLOR[chart], 2)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart_flash
+  #--------------------------------------------------------------------------
+  def draw_chart_flash(x, y, r, points, pw, chart)
+    if chart == :element; sprite = @element_chart_sprite
+    elsif chart == :state; sprite = @state_chart_sprite
+    elsif chart == :param; sprite = @param_chart_sprite
+    else; return
+    end
+    return if sprite == nil
+    points = points.clone
+    points.each { |pt| pt[0] -= x }
+    cx = x + r + 28
+    cy = y + r + 28
+    color = BM::STATUS::FLASH_COLOR[chart]
+    sprite.bitmap.clear
+    sprite.bitmap.fill_polygon(points, Color.new(0, 0, 0, 0), color)
+    sprite.ox = cx - x
+    sprite.oy = cy
+    sprite.x  = self.x + cx + 16 - 4
+    sprite.y  = self.y + cy + 16 - 4
+  end
+  #--------------------------------------------------------------------------
+  # * update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    #update_chart(@element_chart_sprite)
+    #update_chart(@state_chart_sprite)
+    update_chart(@param_chart_sprite)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: update_chart
+  #--------------------------------------------------------------------------
+  def update_chart(sprite)
+    return if sprite == nil
+    sprite.update
+    zoom = opacity = 0
+    case @duration
+    when 0..11
+      zoom    = @duration / 11.0
+      opacity = 255
+    when 12..27
+      zoom    = 1
+      opacity = (27 - @duration) * 16
+    end
+    sprite.zoom_x  = sprite.zoom_y = zoom
+    sprite.opacity = opacity
+    @duration = (@duration + BM::STATUS::CHART_FRAME_RATE) % Graphics.frame_rate
+  end
+  #--------------------------------------------------------------------------
+  # * new method: create_chart_sprite
+  #--------------------------------------------------------------------------
+  def create_chart_sprite(sprite)
+    return if sprite == nil
+    sprite.z = 1000
+    sprite.bitmap = Bitmap.new(height - 32, height - 32)
+    sprite.ox = sprite.width  / 2
+    sprite.oy = sprite.height / 2
+    sprite.blend_type = 1
+    sprite.opacity = 0
+  end
+  #--------------------------------------------------------------------------
+  # * alias: dispose
+  #--------------------------------------------------------------------------
+  alias :bm_status_dis :dispose
+  def dispose
+    bm_status_dis
+    #dispose_sprites(@element_chart_sprite)
+    #dispose_sprites(@state_chart_sprite)
+    dispose_sprites(@param_chart_sprite)
+  end
+  #--------------------------------------------------------------------------
+  # * new Method: dispose
+  #--------------------------------------------------------------------------
+  def dispose_sprites(sprite)
+    return unless sprite != nil
+    sprite.bitmap.dispose 
+    sprite.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * mew method: Z 
+  #--------------------------------------------------------------------------
+  def z=(value)
+    super(value)
+    #@element_chart_sprite.z = z + 1 if @element_chart_sprite != nil
+    #@state_chart_sprite.z   = z + 1 if @state_chart_sprite   != nil
+    @param_chart_sprite.z   = z + 1 if @param_chart_sprite   != nil
+  end
+end

@@ -1,0 +1,1222 @@
+#==============================================================================
+# ** Blackmorning -> Advanced Equip 
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 3.10
+#  updated May/02/2016
+# - paper doll mode
+#==============================================================================
+#  - INTRODUCTION -
+# - Similar to the Equip Scene in "Valkyrie Stories" made for RPG Maker VX by Hanzo Kimura
+# - Icons for equipment types
+# - Visual placement of equipment onto an image
+# - Image can be assigned to actors or to classes in the Database Notebox (actors take priority)
+# - Equipment icon positions can be assigned and changed to match new images
+#     positions must work for all images used.
+# - Optimize equipment when you press CTRL
+# - Remove all equipment when you press ALT
+#==============================================================================
+# ▼ Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above ▼ Main. 
+# Also put below YEA - Ace Equip Engine if using it
+# If using BM - Advanced Menu, put this below it.
+# Remember to save.
+# -----------------------------------------------------------------------------
+# Item,Armor,Weapon Notetags - These notetags go in the item notebox in the database.
+# -----------------------------------------------------------------------------
+# <image: string>
+# Uses a picture from Graphics\Pictures\ of your RPG Maker VX Ace Project's
+# directory with the filename of "string" (without the extension) as the image
+# picture.  Will adjust to size of box.
+# Uses the same image as shown in the Yanfly Ace Item Menu.
+# 
+# For Paper Doll mode
+# <bimage: string>
+# string is the filename of the equipment image and goes in the folder 
+# assigned to the body image in the script
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Actor Notetags - These notetags go in the actor notebox in the database.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# To set an actor's equip image background, enter:
+# <equip image: name>
+#   name is the filename of the image and goes in the folder assigned in the script
+# <equip body>
+#  string
+#  string
+# </equip body>
+# This changes the actor's slot positions to wherever is listed in between the two
+# notetags. An actor's custom equip slots will take priority over a class's
+# custom equip slots, which will take priority over the default equip slots.
+# Use:
+# "equip slotx id: n" with id as the equipment slot, n is the X co-ordinate.
+# "equip sloty id: n" with id as the equipment slot, n is the Y co-ordinate.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Class Notetags - These notetags go in the class notebox in the database.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# To set an class's equip image background, enter:
+#       <equip image: name>
+#   name is the filename of the image and goes in the folder assigned in the script
+# <equip body>
+#  string
+#  string
+# </equip body>
+# This changes the actor's slot positions to wherever is listed in between the two
+# notetags. An actor's custom equip slots will take priority over a class's
+# custom equip slots, which will take priority over the default equip slots.
+# Use:
+# "equip slotx id: n" with id as the equipment slot, n is the X co-ordinate.
+# "equip sloty id: n" with id as the equipment slot, n is the Y co-ordinate.
+#==============================================================================
+module BM
+  module EQUIP
+    MINI_FONT_SIZE = 16 # for smaller text throughout script
+    COMMAND_SIDE_OPTIONS = {
+      # size of command and slot window
+      :width => Graphics.width/2,
+      # are the slot/item/command windows on the left
+      :left  => true,
+      # number of command rows shown
+      # (example: default menu is 1, YEA is 3)
+      :lines_shown => 1, 
+      :vert => false, #true - vertical commands, false - horizontal commands
+      :alignment => 0,
+    } # DO NOT REMOVE
+    COMMAND_HELP = [
+      "Manually equip items",            # equip
+      "Automatically equip the best items",  # optimize
+      "Unequip all items",      # remove all
+    ]  # DO NOT REMOVE
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Background Options
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    BG_OPTIONS ={
+      :win_opacity  => 255,    # window opacity for menu
+      :show_bg_img  => false, # show background image
+      :bg_image     => "Wallpaper",   # image name (Located in Graphics/System
+      :bg_opacity   => 255,  # background image opacity
+      :bg_scroll_x  => 0,    # horizontal movement
+      :bg_scroll_y  => 0,    # vertical movement
+    }# DO NOT REMOVE 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    SHOW_ITEMS_LIST = true # Item list always shown or hidden until choosing item
+    SLOT_LINES_SHOWN = 6
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Equip Types based on those formed in YEA::EQUIP::TYPES
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    EQUIP_TYPE_OPTIONS={
+    # format => [equip_slot, icon_id]
+      0 => 147, # weapon
+      1 => 161, # shield
+      2 => 163, # head
+      3 => 169, # body
+      4 => 179, # accessory
+      5 => 175, # cloak
+      6 => 180, # necklace 
+      
+    } # DO NOT REMOVE
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # number of icon positions relate to equipment slots 
+    # default: weapon, shield, head, body, accessory
+    # if using YEA Equip, related to placement in YEA::EQUIP::DEFAULT_BASE_SLOTS
+    BODY_ICON_LOCATIONS = { 
+    # format => [equip_slot, x, y]
+    # x,y for location of icon box on image
+      0 => [44, 224], # weapon
+      1 => [172, 224], # shield/second weapon
+      2 => [108, 32], # head
+      3 => [108, 160], # body
+      4 => [44, 96], # accessory
+      5 => [108, 96], # extra1
+      6 => [44, 260], # extra2
+      7 => [108, 260], # extra3
+      
+    } # DO NOT REMOVE
+    ICON_BORDER = 1073 #specific for equip screen
+    # size of equipment icons on body image
+    BODY_ICON_SIZE = 34 #default is 24
+    BODY_OPTIONS = {
+      :show_box   => true,   # shows box around icon
+      :show_text  => true,  # shows equipment type above icon
+      :image      => "equip_m", # default image for background silhouette
+      :show_face  => true, # show actor's face in right corner
+      :face_size  => 60, # size of actor's face
+    } # DO NOT REMOVE
+    # set this to where you want the images for the equipment body
+    EQUIP_BODY_FOLDER = "Graphics/System/" 
+    ##
+    PAPER_DOLL_MODE = true
+    # - dress your body image in this mode
+    # - images chosen for equipment not altered in size
+    # - position equipment same as you would the various slots
+    # - images found in EQUIP_BODY_FOLDER 
+    ##
+    EQUIP_BODY_FACENAME = false
+    # if false, uses images designated in actor's notebox
+    # if true, makes equip body image linked to faceset and index,so the image 
+    # must be named based on actor's face_name and index just like the portrait 
+    # images filename.    
+    #---------------------------------------------------------------------------
+    # Parameters shown in equip status window
+    #---------------------------------------------------------------------------
+    # can include parameters, xparameters, sparameters
+    # :hp,:mp,:atk,:mat,:def,:mdf,:agi,:luk
+    # :hit,:eva,:cri,:cev,:mev,:mrf,:cnt,:hrg,:mrg,:trg
+    # :tgr,:grd,:rec,:pha,:mcr,:tcr,:pdr,:mdr,:fdr,:exr
+    PARAM_SHOWN = [:hp,:atk, :mat, :def, :mdf, :agi, :luk, :hit,:eva, :cri, :cev] 
+    
+    
+  end
+end
+#==============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+#==============================================================================
+$imported ||= {}
+$imported[:bm_vk_equip] = 3.10
+BM.required(:bm_vk_equip, :bm_base, 1.24, :above)
+#==========================================================================
+# ** BM::Regexp
+#==========================================================================
+module BM
+  module REGEXP
+    EQUIP_IMAGE = /<(?:EQUIP_IMAGE|equip image):[ ](.*)>/i
+    EQUIP_BODY_ON  = /<(?:EQUIP_BODY|equip body)>/i
+    EQUIP_BODY_OFF = /<\/(?:EQUIP_BODY|equip body)>/i
+    E_IMAGE    = /<(?:IMAGE|image):[ ](.*)>/i
+    EB_IMAGE    = /<(?:BIMAGE|bimage):[ ](.*)>/i
+  end
+end  
+#==============================================================================
+# ** Cache
+#==============================================================================
+module Cache
+  #--------------------------------------------------------------------------
+  # * New Method: Get Equip Body Graphic
+  #--------------------------------------------------------------------------
+  def self.equip_body(filename, hue = 0)
+    load_bitmap(BM::EQUIP::EQUIP_BODY_FOLDER, filename, hue)
+  end
+end
+
+#==============================================================================
+# ** DataManager
+#==============================================================================
+module DataManager  
+  #--------------------------------------------------------------------------
+  # * Alias: load_database
+  #--------------------------------------------------------------------------
+  class << self; alias :bm_equip_ld :load_database; end
+  def self.load_database
+    bm_equip_ld
+    load_notetags_bm_equip
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: load_notetags_bm_equip
+  #--------------------------------------------------------------------------
+  def self.load_notetags_bm_equip
+    groups = [$data_actors,$data_classes,$data_items, $data_weapons, $data_armors]
+    for group in groups
+      for obj in group
+        next if obj.nil?
+        obj.load_notetags_bm_equip
+      end
+    end
+  end
+end
+#==============================================================================
+# ** RPG::BaseItem
+#==============================================================================
+class RPG::BaseItem
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :equip_image
+  attr_accessor :base_equip_body_x
+  attr_accessor :base_equip_body_y
+  attr_accessor :equip_body_default
+  attr_accessor :e_image
+  attr_accessor :eb_image
+  #--------------------------------------------------------------------------
+  # * Cache: load_notetags_bm_equip
+  #--------------------------------------------------------------------------
+  def load_notetags_bm_equip
+    @equip_image = nil
+    @equip_body_on = false
+    @equip_body_default = true
+    @base_equip_body_x = []
+    @base_equip_body_y = []
+    if $imported["YEA-AceEquipEngine"]
+      item_max = YEA::EQUIP::DEFAULT_BASE_SLOTS.size
+    else
+      item_max = BM::EQUIP::BODY_ICON_LOCATIONS.size
+    end
+    item_max.times {|i| 
+      next unless BM::EQUIP::BODY_ICON_LOCATIONS.include?(i)
+      y = BM::EQUIP::BODY_ICON_LOCATIONS[i][1]
+      x = BM::EQUIP::BODY_ICON_LOCATIONS[i][0]
+      @base_equip_body_y.push(y) 
+      @base_equip_body_x.push(x) 
+    }
+    #---
+    self.note.split(/[\r\n]+/).each { |line|
+      case line
+      when BM::REGEXP::E_IMAGE
+        @e_image = $1.to_s
+      when BM::REGEXP::EB_IMAGE
+        @eb_image = $1.to_s
+      #---
+      #---
+      when BM::REGEXP::EQUIP_BODY_ON
+        next unless self.is_a?(RPG::Actor) ||self.is_a?(RPG::Class)
+        @equip_body_on = true
+      when BM::REGEXP::EQUIP_BODY_OFF
+        next unless self.is_a?(RPG::Actor) ||self.is_a?(RPG::Class)
+        @equip_body_on = false
+      when BM::REGEXP::EQUIP_IMAGE
+        next unless self.is_a?(RPG::Actor) ||self.is_a?(RPG::Class)
+        @equip_image = $1
+      #---
+      else
+        if @equip_body_on
+          case line.upcase
+          when /EQUIP SLOTX[ ](\d+):[ ](\d+)/i
+            @base_equip_body_x[$1.to_i] = $2.to_i
+            @equip_body_default = false
+          when /EQUIP SLOTY[ ](\d+):[ ](\d+)/i
+            @base_equip_body_y[$1.to_i] = $2.to_i
+            @equip_body_default = false
+          end
+        end
+      end
+    } # self.note.split
+  end
+end
+#==============================================================================
+# ** Icon
+#==============================================================================
+module Icon
+  def self.etype(id)
+    return BM::EQUIP::EQUIP_TYPE_OPTIONS[id] if BM::EQUIP::EQUIP_TYPE_OPTIONS.include?(id)
+    return 0
+  end
+  #--------------------------------------------------------------------------
+  def self.equip_border; BM::EQUIP::ICON_BORDER; end
+end
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler    
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :equip_image
+  #--------------------------------------------------------------------------
+  # Alias: Setup
+  #--------------------------------------------------------------------------
+  alias :bm_equip_setup :setup
+  def setup(actor_id)
+    bm_equip_setup(actor_id)
+    @equip_image = equip_image
+  end
+  #--------------------------------------------------------------------------
+  # new method: equip_image
+  #--------------------------------------------------------------------------
+  def equip_image
+    if actor.equip_image != nil
+      return actor.equip_image 
+    elsif $data_classes[@class_id].equip_image != nil
+      return $data_classes[@class_id].equip_image
+    else
+      return BM::EQUIP::BODY_OPTIONS[:image]
+    end
+  end
+  #--------------------------------------------------------------------------
+  # Alias: change class
+  #--------------------------------------------------------------------------
+  alias :bm_cc :change_class
+  def change_class(*args, &block)
+    bm_cc(*args, &block)
+    @equip_image = equip_image
+  end
+  #--------------------------------------------------------------------------
+  # new method: equip_body_x
+  #--------------------------------------------------------------------------
+  def equip_body_x
+    return self.actor.base_equip_body_x unless self.actor.equip_body_default
+    return self.class.base_equip_body_x
+  end
+  #--------------------------------------------------------------------------
+  # new method: equip_body_y
+  #--------------------------------------------------------------------------
+  def equip_body_y
+    return self.actor.base_equip_body_y unless self.actor.equip_body_default
+    return self.class.base_equip_body_y
+  end
+end
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window
+  #--------------------------------------------------------------------------
+  # new method: draw_background_colour
+  #--------------------------------------------------------------------------
+  def draw_background_colour(dx, dy)
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = Rect.new(dx+1, dy+1, contents.width - dx - 2, line_height - 2)
+    contents.fill_rect(rect, colour)
+  end
+end
+#==============================================================================
+# ** Window_EquipSlot
+#==============================================================================
+class Window_EquipSlot < Window_Selectable
+  #--------------------------------------------------------------------------
+  # overwrite method: initialize
+  #--------------------------------------------------------------------------
+  def initialize(dx, dy, dw)
+    @dy = dy
+    super(dx, dy, dw, window_height)
+    @actor = nil
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  # * Get Window Height
+  #--------------------------------------------------------------------------
+  def window_height
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      fitting_height(visible_line_number)
+    else
+      Graphics.height - @dy
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Get Number of Lines to Show
+  #--------------------------------------------------------------------------
+  def visible_line_number
+    return BM::EQUIP::SLOT_LINES_SHOWN
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: draw_item
+  #--------------------------------------------------------------------------
+  def draw_item(index)
+    return unless @actor
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect2 = item_rect_for_text(index)
+    rect2.x += 30; rect2.y += 1
+    draw_background_colour(rect2.x, rect2.y)
+    rect = item_rect_for_text(index)
+    change_color(system_color, enable?(index))
+    draw_icon(Icon.equip_border, rect.x, rect.y, enable?(index))
+    item = @actor.equips[index]
+    dx = rect.x + 24
+    dw = contents.width - dx - 24
+    if item.nil?
+      draw_icon(slot_icon(index), rect.x, rect.y, enable?(index))
+      draw_nothing_equip(dx, rect.y, false, dw) if $imported["YEA-AceEquipEngine"]
+    else      
+      draw_item_name(item, dx, rect.y, enable?(index), dw)
+    end
+    if $imported['KRX-AsagisGunLicense']
+      item = @actor.equips[index]
+      name = slot_name(index)
+      if @actor.class.ammo_user? && name == @actor.class.ammo_slot_name
+        unless item.nil?
+          draw_text(0,rect.y,contents.width-24,line_height, sprintf(":%2d", $game_party.item_number(item) + 1),2)
+        end
+      end
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Draw Item Name
+  #--------------------------------------------------------------------------
+  def draw_item_name(item, x, y, enabled = true, width = 172)
+    return unless item
+    draw_icon(item.icon_index, x - 24, y, enabled)
+    change_color(normal_color, enabled)
+    draw_text(x + 24, y, width, line_height, item.name)
+  end
+  #--------------------------------------------------------------------------
+  # *new method: slot_icon
+  #--------------------------------------------------------------------------
+  def slot_icon(index)
+    @actor ?  Icon::etype(@actor.equip_slots[index]) : 0
+  end
+end
+#==============================================================================
+# ** Window_EquipCommand
+#==============================================================================
+class Window_EquipCommand < Window_HorzCommand
+  if !BM::EQUIP::COMMAND_SIDE_OPTIONS[:vert] && $imported["YEA-AceEquipEngine"]    
+    include Horizontal_Fix 
+    #--------------------------------------------------------------------------
+    # * Get Digit Count
+    #--------------------------------------------------------------------------
+    def col_max; return 3; end    
+  elsif BM::EQUIP::COMMAND_SIDE_OPTIONS[:vert] && !$imported["YEA-AceEquipEngine"]
+    include Vertical_Fix 
+    #--------------------------------------------------------------------------
+    # * Get Digit Count
+    #--------------------------------------------------------------------------
+    def col_max; return 1; end 
+  end
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #--------------------------------------------------------------------------
+  def initialize(x, y, width)
+    @window_width = window_width
+    super(x, y)
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: visible_line_number
+  #--------------------------------------------------------------------------
+  def visible_line_number
+    return BM::EQUIP::COMMAND_SIDE_OPTIONS[:lines_shown]
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: window_width
+  #--------------------------------------------------------------------------
+  def window_width
+    return BM::EQUIP::COMMAND_SIDE_OPTIONS[:width]
+  end
+  #--------------------------------------------------------------------------
+  # * update_help
+  #--------------------------------------------------------------------------
+  def update_help
+    @help_window.item_color = normal_color
+    @help_window.set_text(BM::EQUIP::COMMAND_HELP[self.index])
+  end  
+end
+#==============================================================================
+# ** NEW - Window_EquipActor
+#==============================================================================
+class Window_EquipActor < Window_Base
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_reader   :slot_window            # Slot window
+  #--------------------------------------------------------------------------
+  # * overwrite: initialize
+  #--------------------------------------------------------------------------
+  def initialize(dx, dy)
+    window_height = Graphics.height - dy
+    super(dx, dy, window_width, window_height)
+    @actor = nil
+    @slot_id = 0
+  end
+  #--------------------------------------------------------------------------
+  # actor=
+  #--------------------------------------------------------------------------
+  def actor=(actor)
+    return if @actor == actor
+    @actor = actor
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  # * Set Status Window
+  #--------------------------------------------------------------------------
+  def slot_window=(slot_window)
+    @slot_window = slot_window
+    update
+  end
+  #--------------------------------------------------------------------------
+  # * Frame Update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    @slot_id = @slot_window.index if @slot_window
+    update_cursor
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: window_width
+  #--------------------------------------------------------------------------
+  def window_width
+    return Graphics.width - BM::EQUIP::COMMAND_SIDE_OPTIONS[:width]
+  end
+  #--------------------------------------------------------------------------
+  # * New method: Get Number of Items
+  #--------------------------------------------------------------------------
+  def item_max
+    @actor ? @actor.equip_slots.size : 0
+  end
+  #--------------------------------------------------------------------------
+  # * New method: Get Item
+  #--------------------------------------------------------------------------
+  def item
+    @actor ? @actor.equips[index] : nil
+  end
+  #--------------------------------------------------------------------------
+  # * Overwrite: Refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    contents.clear
+    draw_all_items
+  end
+  #--------------------------------------------------------------------------
+  # * New method: Draw All Items
+  #--------------------------------------------------------------------------
+  def draw_all_items
+    return unless @actor
+    draw_actor_name(@actor,0,0)
+    draw_equip_dummy(0, 0)
+    draw_mini_face
+    if BM::EQUIP::PAPER_DOLL_MODE
+      item_max.times {|i| draw_item2(i) }  
+    else
+      item_max.times {|i| draw_item(i) }
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw mini face
+  #--------------------------------------------------------------------------
+  def draw_mini_face
+    if BM::EQUIP::BODY_OPTIONS[:show_face]
+      enabled = battle_party?(@actor)
+      iwidth = BM::EQUIP::BODY_OPTIONS[:face_size]
+      iheight = BM::EQUIP::BODY_OPTIONS[:face_size]
+      image_rect = Rect.new(contents.width - iwidth, 0, iwidth, iheight)
+      draw_icon_face(@actor, image_rect, enabled)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: Draw Item
+  #--------------------------------------------------------------------------
+  def draw_item(index)
+    return unless index != nil
+    size = BM::EQUIP::BODY_ICON_SIZE
+    x = @actor.equip_body_x[index].to_i
+    y = @actor.equip_body_y[index].to_i
+    mini_height = BM::EQUIP::MINI_FONT_SIZE
+    contents.font.size = mini_height
+    if BM::EQUIP::BODY_OPTIONS[:show_box]
+      colour = Color.new(255, 255, 255, translucent_alpha/2)
+      rect1 = Rect.new(x-3,y-3,size+6,size+6)
+      contents.fill_rect(rect1, colour)
+      colour = Color.new(0, 0, 0, translucent_alpha/2)
+      rect2 = Rect.new(x-2,y-2,size+4,size+4)
+      contents.fill_rect(rect2, colour)
+    end    
+    draw_text(x-16, y-16, size + 16*2, line_height, slot_name(index),1) if BM::EQUIP::BODY_OPTIONS[:show_text]
+    draw_equip_icon(@actor.equips[index], x, y, enable?(index))
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * new method: Draw Item
+  #--------------------------------------------------------------------------
+  def draw_item2(index)
+    return unless index != nil
+    x = @actor.equip_body_x[index].to_i
+    y = @actor.equip_body_y[index].to_i
+    draw_pd_equip_image(@actor.equips[index], x, y)
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * new method: Draw pd equip Image
+  #--------------------------------------------------------------------------
+  def draw_pd_equip_image(item, x, y)
+    return unless item
+    return if item.eb_image.nil?
+    bitmap = Cache.equip_body(item.eb_image)
+    rect = Rect.new(0, 0, bitmap.width, bitmap.height)
+    contents.blt(x, y, bitmap, rect)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: Draw equip icon
+  #--------------------------------------------------------------------------
+  def draw_equip_icon(item, x, y, enable)
+    return unless item
+    if item.e_image.nil?
+      draw_item_image(item.icon_index, x, y, enable)
+    else
+      size = BM::EQUIP::BODY_ICON_SIZE
+      target = Rect.new(x, y, size, size)
+      bitmap = Cache.picture(item.e_image)
+      contents.stretch_blt(target, bitmap, bitmap.rect, enable ? 255 : translucent_alpha)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # draw_item_image
+  #--------------------------------------------------------------------------
+  def draw_item_image(icon_index, x, y, enabled)
+    size = BM::EQUIP::BODY_ICON_SIZE
+    bitmap = Cache.system("Iconset")
+    rect = Rect.new(icon_index % 16 * 24, icon_index / 16 * 24, 24, 24)
+    target = Rect.new(x, y, size, size)
+    contents.stretch_blt(target, bitmap, rect, enabled ? 255 : translucent_alpha)
+  end
+  #--------------------------------------------------------------------------
+  # * Update Cursor
+  #--------------------------------------------------------------------------
+  def update_cursor
+    if @slot_id < 0
+      cursor_rect.empty
+    else
+      return if BM::EQUIP::PAPER_DOLL_MODE
+      x = @actor.equip_body_x[@slot_id].to_i
+      y = @actor.equip_body_y[@slot_id].to_i
+      size = BM::EQUIP::BODY_ICON_SIZE
+      cursor_rect.set(x, y, size, size)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Get Equipment Slot Name
+  #--------------------------------------------------------------------------
+  def slot_name(index)
+    return @actor ? Vocab::etype(@actor.equip_slots[index]) : "" unless $imported['KRX-AsagisGunLicense']
+    if @actor && @actor.class.ammo_slot_id == index
+      if @actor.equips[@actor.class.weapon_slot_id]
+        if @actor.equips[@actor.class.weapon_slot_id].ammo_slot_name != nil
+          return @actor.equips[@actor.class.weapon_slot_id].ammo_slot_name
+        else
+          return @actor.class.ammo_slot_name
+        end
+      end
+    end
+    @actor ? Vocab::etype(@actor.equip_slots[index]) : ""
+  end
+  #--------------------------------------------------------------------------
+  # * Display Equipment Slot in Enabled State?
+  #--------------------------------------------------------------------------
+  def enable?(index)
+    @actor ? @actor.equip_change_ok?(index) : false
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_equip_dummy
+  #--------------------------------------------------------------------------
+  def draw_equip_dummy(x, y)
+    bitmap = equip_image
+    rect = Rect.new(0, 0, bitmap.width, bitmap.height)
+    contents.blt(x, y, bitmap, rect)
+    bitmap.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * new method: equip_image
+  #--------------------------------------------------------------------------
+  def equip_image
+    if BM::EQUIP::EQUIP_BODY_FACENAME 
+      image = "#{@actor.face_name}-#{@actor.face_index}"
+    else      
+      image = @actor.equip_image
+    end
+    Cache.equip_body(image)
+  end
+end
+#==============================================================================
+# ** Window_EquipItem
+#==============================================================================
+class Window_EquipItem < Window_ItemList
+  #--------------------------------------------------------------------------
+  # overwrite method: col_max
+  #--------------------------------------------------------------------------
+  def col_max; return 1; end
+  #--------------------------------------------------------------------------
+  # *overwrite: Set Equipment Slot ID
+  #--------------------------------------------------------------------------
+  def slot_id=(slot_id)
+    return if @slot_id == slot_id
+    @slot_id = slot_id
+    refresh if BM::EQUIP::SHOW_ITEMS_LIST
+    self.oy = 0
+  end
+  #--------------------------------------------------------------------------
+  # * Hide Window
+  #--------------------------------------------------------------------------
+  def hide
+    self.visible = false unless BM::EQUIP::SHOW_ITEMS_LIST    
+    self
+  end
+  #--------------------------------------------------------------------------
+  # * Show Window
+  #--------------------------------------------------------------------------
+  def show
+    @last_item = 0
+    self.visible = true unless BM::EQUIP::SHOW_ITEMS_LIST
+    self
+  end
+end
+#==============================================================================
+# ** Window_Equipstatus
+#==============================================================================
+class Window_EquipStatus < Window_Base
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_reader   :slot_window            # Slot window
+  #--------------------------------------------------------------------------
+  # * alias: initialize
+  #--------------------------------------------------------------------------
+  alias :bm_equip_init :initialize
+  def initialize(dx, dy)
+    @slot_id = 0
+    @dy = dy
+    bm_equip_init(dx, dy)
+  end
+  #--------------------------------------------------------------------------
+  # * Get Window Height
+  #--------------------------------------------------------------------------
+  def window_height
+    Graphics.height - @dy
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: window_width
+  #--------------------------------------------------------------------------
+  def window_width
+    return Graphics.width - BM::EQUIP::COMMAND_SIDE_OPTIONS[:width]
+  end
+  #--------------------------------------------------------------------------
+  # * Set Status Window
+  #--------------------------------------------------------------------------
+  def slot_window=(slot_window)
+    @slot_window = slot_window
+    update
+  end
+  #--------------------------------------------------------------------------
+  # * Frame Update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    @slot_id = @slot_window.index if @slot_window
+    update_cursor
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    contents.clear
+    return unless @actor
+    draw_actor_name(@actor,0,0)
+    mini_height = BM::EQUIP::MINI_FONT_SIZE
+    contents.font.size = mini_height
+    draw_background_colour(24, line_height+mini_height)
+    draw_background_colour(48, line_height*5/2+mini_height)
+    draw_text(0,line_height,172,line_height, "Current Item")
+    draw_text(24,line_height*5/2,172,line_height, "To New Item")
+    reset_font_settings
+    if @slot_id != nil
+      if @actor
+        item = @actor.equips[@slot_id]
+        draw_item_name(item, 24, line_height+mini_height)
+      end
+      if @temp_actor
+        new_item = @temp_actor.equips[@slot_id]
+        draw_item_name(new_item, 48, line_height*5/2+mini_height)
+      end
+    end
+    i = 0
+    h = contents.height - line_height*4 - 6
+    size = BM::EQUIP::PARAM_SHOWN.size
+    dh = [[line_height,h/size].min,22].max
+    contents.font.size = dh
+    for param_id in BM::EQUIP::PARAM_SHOWN
+      case param_id
+        when :hp,:maxhp then param_id = 0
+        when :mp,:maxmp then param_id = 1
+        when :atk then param_id = 2
+        when :def then param_id = 3
+        when :mat then param_id = 4
+        when :mdf then param_id = 5
+        when :agi then param_id = 6
+        when :luk then param_id = 7
+      end
+      draw_item(0, dh * i + contents.height - h, param_id)
+      i += 1      
+      return if dh * (i + 1) + contents.height - h > contents.height  
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Update Cursor
+  #--------------------------------------------------------------------------
+  def update_cursor
+    mini_height = BM::EQUIP::MINI_FONT_SIZE
+    if @slot_id < 0
+      cursor_rect.empty
+    else
+      cursor_rect.set(48, line_height*5/2+mini_height, contents.width-48, line_height)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Get Item
+  #--------------------------------------------------------------------------
+  def item
+    @actor ? @actor.equips[index] : nil
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: draw_item
+  #--------------------------------------------------------------------------
+  def draw_item(dx, dy, param_id)
+    draw_background_colour(dx, dy)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      draw_param_name(dx + 4, dy, Vocab::param(param_id))
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      draw_param_name(dx + 4, dy, Vocab::xparam_a(param_id))
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      draw_param_name(dx + 4, dy, Vocab::sparam_a(param_id))
+    end
+    drx = (contents.width + 22) / 2
+    draw_right_arrow(drx, dy)
+    draw_current_param(dx + 4, dy, param_id) if @actor    
+    draw_new_param(drx + 22, dy, param_id) if @temp_actor
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: draw_param_name
+  #--------------------------------------------------------------------------
+  def draw_param_name(dx, dy, text)
+    if $imported["YEA-AceEquipEngine"]
+      contents.font.size = YEA::EQUIP::STATUS_FONT_SIZE
+    end
+    change_color(system_color)
+    draw_text(dx, dy, contents.width, line_height, text)
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: draw_current_param
+  #--------------------------------------------------------------------------
+  def draw_current_param(dx, dy, param_id)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      text = @actor.param(param_id).group
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      value = eval("@actor.#{param_id}")
+      text = sprintf("%d%", value * 100)
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      value = eval("@actor.#{param_id}")
+      text = sprintf("%d%", value * 100)
+    end 
+    change_color(normal_color)
+    dw = (contents.width + 22) / 2
+    draw_text(0, dy, dw, line_height, text, 2)
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: window_width
+  #--------------------------------------------------------------------------
+  def window_width
+    return Graphics.width - BM::EQUIP::COMMAND_SIDE_OPTIONS[:width]
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: draw_new_param
+  #--------------------------------------------------------------------------
+  def draw_new_param(dx, dy, param_id)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      actor_value = @actor.param(param_id)
+      temp_value = @temp_actor.param(param_id)
+      text = temp_value.group
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      actor_value = eval("@actor.#{param_id}")
+      temp_value = eval("@temp_actor.#{param_id}")
+      text = sprintf("%d%%", temp_value * 100)
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      actor_value = eval("@actor.#{param_id}")
+      temp_value = eval("@actor.#{param_id}")
+      text = sprintf("%d%%", temp_value * 100)
+    end 
+    if $imported["YEA-AceEquipEngine"]
+      contents.font.size = YEA::EQUIP::STATUS_FONT_SIZE
+    end
+    new_value = text
+    change = temp_value - actor_value
+    change_color(param_change_color(change))
+    draw_text(0, dy, contents.width-4, line_height, text, 2)
+    contents.font.size = BM::EQUIP::MINI_FONT_SIZE
+    if change != 0
+      value = change
+      case param_id  
+      when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+        value = sprintf("%d%%", value * 100)
+      when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+        value = sprintf("%d%%", value * 100)
+      end
+      value = "+#{value}" if change > 0
+      draw_text(dx, dy, 92, 14, value)
+    end
+    w = contents.text_size(value).width
+    reset_font_settings
+    draw_icon(Icon.param_compare(change), contents.width-w-12, dy) if $imported[:bm_icon]    
+  end  
+end
+#==============================================================================#
+# ** Scene_Equip
+#==============================================================================#
+class Scene_Equip < Scene_MenuBase
+  alias :bm_equip_start :start
+  def start
+    bm_equip_start
+    create_actor_window unless $imported["YEA-AceEquipEngine"]
+    @status_window.slot_window = @slot_window
+    @actor_window.slot_window = @slot_window
+    @command_window.help_window = @help_window
+    relocate_windows
+    bm_win_opacity
+  end
+  #--------------------------------------------------------------------------
+  def bm_win_opacity
+    @command_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @command_window.nil?
+    @help_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @help_window.nil?
+    @item_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @item_window.nil?
+    @status_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @status_window.nil?
+    @actor_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @actor_window.nil?
+    @slot_window.opacity = BM::EQUIP::BG_OPTIONS[:win_opacity] unless @slot_window.nil?
+  end
+  #--------------------------------------------------------------------------
+  # * Create Background Image
+  #--------------------------------------------------------------------------
+  alias :bm_equip_cb :create_background
+  def create_background
+    return bm_equip_cb unless custom_bg? && !$imported[:bm_menustatus] 
+    custom_background
+  end
+  #--------------------------------------------------------------------------
+  def custom_bg?
+    return false if BM::EQUIP::BG_OPTIONS[:bg_image] == "" 
+    return false unless BM::EQUIP::BG_OPTIONS[:show_bg_img]
+    return true
+  end
+  #--------------------------------------------------------------------------
+  def custom_background
+    @background_sprite = Plane.new
+    @background_sprite.bitmap = Cache.system(BM::EQUIP::BG_OPTIONS[:bg_image])
+    @background_sprite.opacity = BM::EQUIP::BG_OPTIONS[:bg_opacity]
+  end
+  #--------------------------------------------------------------------------
+  def update_background
+    return if BM::EQUIP::BG_OPTIONS[:bg_scroll_x] == 0 && BM::EQUIP::BG_OPTIONS[:bg_scroll_y] == 0
+    @background_sprite.ox += BM::EQUIP::BG_OPTIONS[:bg_scroll_x]
+    @background_sprite.oy += BM::EQUIP::BG_OPTIONS[:bg_scroll_y]
+  end
+  #--------------------------------------------------------------------------
+  # new method: create_actor_window
+  #--------------------------------------------------------------------------
+  def create_actor_window
+    if $imported["YEA-AceEquipEngine"]
+      x = @command_window.width
+    else
+      x = 0
+    end
+    wy = @help_window.height
+    @actor_window = Window_EquipActor.new(x, wy)
+    @actor_window.viewport = @viewport
+    @actor_window.actor = @actor
+  end
+  #--------------------------------------------------------------------------
+  # * Create Item Window
+  #--------------------------------------------------------------------------
+  alias :bm_equip_ciw :create_item_window
+  def create_item_window
+    wx = @command_window.width
+    ww = Graphics.width - wx
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      wy = @slot_window.y + @slot_window.height
+      wh = Graphics.height - wy
+    else
+      wy = @slot_window.y
+      wh = Graphics.height - wy
+    end
+    @item_window = Window_EquipItem.new(wx, wy, ww, wh)
+    @item_window.viewport = @viewport
+    @item_window.help_window = @help_window
+    @item_window.status_window = @status_window
+    @item_window.actor = @actor
+    @item_window.set_handler(:ok,     method(:on_item_ok))
+    @item_window.set_handler(:cancel, method(:on_item_cancel))
+    @slot_window.item_window = @item_window
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      @item_window.show 
+    else
+      @item_window.hide
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Alias: Update
+  #--------------------------------------------------------------------------
+  alias :bm_equip_up :update
+  def update
+    bm_equip_up
+    update_background if custom_bg? && !$imported[:bm_menustatus]
+    command_optimize2 if Input.trigger?(:CTRL)
+    command_clear2 if Input.trigger?(:ALT)
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: create_status_window
+  #--------------------------------------------------------------------------
+  def create_status_window
+    if $imported["YEA-AceEquipEngine"]
+      wx = BM::EQUIP::COMMAND_SIDE_OPTIONS[:width]
+    else
+      wx = 0
+    end
+    wy = @help_window.height
+    @status_window = Window_EquipStatus.new(wx, wy)
+    @status_window.viewport = @viewport
+    @status_window.actor = @actor
+    @status_window.hide
+  end
+  #--------------------------------------------------------------------------
+  # alias method: on_slot_ok
+  #--------------------------------------------------------------------------
+  alias :bm_equip_oso :on_slot_ok
+  def on_slot_ok    
+    bm_equip_oso
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      @slot_window.show 
+    else
+      @slot_window.hide
+      @item_window.show
+    end
+    @item_window.refresh
+    @status_window.show
+    @status_window.refresh
+    @actor_window.hide
+  end
+  #--------------------------------------------------------------------------
+  # alias method: on_item_ok
+  #--------------------------------------------------------------------------
+  alias :bm_equip_oio :on_item_ok
+  def on_item_ok
+    bm_equip_oio
+    @actor_window.refresh unless $imported["YEA-AceEquipEngine"]
+    @actor_window.show
+    @status_window.hide
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      @item_window.show 
+      @slot_window.show
+    else
+      @item_window.hide
+      @slot_window.show
+    end
+  end
+  #--------------------------------------------------------------------------
+  # alias method: on_item_cancel
+  #--------------------------------------------------------------------------
+  alias :bm_equip_oic :on_item_cancel
+  def on_item_cancel
+    bm_equip_oic
+    @actor_window.show
+    if BM::EQUIP::SHOW_ITEMS_LIST
+      @item_window.show 
+      @slot_window.show
+    else
+      @item_window.hide
+      @slot_window.show
+    end
+    @status_window.hide 
+  end
+  #--------------------------------------------------------------------------
+  # alias method: command_optimize
+  #--------------------------------------------------------------------------
+  alias :bm_equip_co :command_optimize
+  def command_optimize
+    bm_equip_co
+    @actor_window.refresh unless $imported["YEA-AceEquipEngine"]
+  end
+  #--------------------------------------------------------------------------
+  # alias method: command_clear
+  #--------------------------------------------------------------------------
+  alias :bm_equip_cc :command_clear
+  def command_clear
+    bm_equip_cc
+    @actor_window.refresh unless $imported["YEA-AceEquipEngine"]
+  end
+  #--------------------------------------------------------------------------
+  # * [Ultimate Equipment] Command
+  #--------------------------------------------------------------------------
+  def command_optimize2
+    Sound.play_equip
+    @actor.optimize_equipments
+    @status_window.refresh
+    @slot_window.refresh
+    @actor_window.refresh
+  end
+  #--------------------------------------------------------------------------
+  # * [Remove All] Command
+  #--------------------------------------------------------------------------
+  def command_clear2
+    Sound.play_equip
+    @actor.clear_equipments
+    @status_window.refresh
+    @slot_window.refresh
+    @actor_window.refresh
+  end
+  #--------------------------------------------------------------------------
+  # alias method: on_actor_change
+  #--------------------------------------------------------------------------
+  alias :bm_equip_oac :on_actor_change
+  def on_actor_change
+    bm_equip_oac
+    @actor_window.actor = @actor unless $imported["YEA-AceEquipEngine"]
+  end
+  #--------------------------------------------------------------------------
+  # new method: relocate_windows
+  #--------------------------------------------------------------------------
+  def relocate_windows
+    if BM::EQUIP::COMMAND_SIDE_OPTIONS[:left]
+      @command_window.x = 0
+      @item_window.x = 0
+      @status_window.x = @command_window.width
+      @actor_window.x = @command_window.width unless @actor_window == nil
+      @slot_window.x = 0
+    else
+      @command_window.x = @status_window.width
+      @item_window.x = @status_window.width
+      @status_window.x = 0
+      @actor_window.x = 0 unless @actor_window == nil
+      @slot_window.x = @status_window.width
+    end
+    return unless $imported["YEA-AceMenuEngine"]
+    case Menu.help_window_location
+    when 0 # Top
+      @help_window.y = 0
+      @status_window.y = @help_window.height
+      @command_window.y = @help_window.height
+      @slot_window.y = @command_window.y + @command_window.height
+      if BM::EQUIP::SHOW_ITEMS_LIST
+        @item_window.y = @slot_window.y + @slot_window.height
+      else
+        @item_window.y = @slot_window.y
+      end
+    when 2 # Bottom
+      @status_window.y = 0
+      @command_window.y = 0
+      @slot_window.y = @command_window.y + @command_window.height
+      if BM::EQUIP::SHOW_ITEMS_LIST
+        @item_window.y = @slot_window.y + @slot_window.height
+      else
+        @item_window.y = @slot_window.y
+      end
+      @help_window.y = @item_window.y + @item_window.height
+    end
+    @actor_window.y = @status_window.y unless @actor_window == nil
+  end  
+  #--------------------------------------------------------------------------
+  # new method: relocate_aee_windows
+  #--------------------------------------------------------------------------
+  def relocate_aee_windows
+    return
+  end
+end

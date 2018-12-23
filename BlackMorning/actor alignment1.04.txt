@@ -1,0 +1,431 @@
+#===============================================================================
+# ** Blackmorning -> Actor Alignment 
+# -----------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.04
+#  released 01/29/2014
+#  updated 11/06/2015
+# -removed unnessary coding
+#==============================================================================
+#  - INTRODUCTION -
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# - assign your actors an "alignment" between good and evil or however you 
+#   choose to define it. 
+# - set an initial alignment 
+# - add or subtract from alignment through script calls
+# - assign alignment to variables for events
+#===============================================================================
+# Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above ? Main. Remember to save. 
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Actor's Notetage
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# To set an actor's initial alignment, enter:
+#       <INI_ALIGN: number>
+#   into the actor's notebox (all actors are neutral alignment by default).
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Message Codes
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# \nal[x]    - Writes out alignment x's name.
+# \aal[x]    - Write name of the alignment for actor x.
+# \pal       - Write name of the alignment for party.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Event Script Calls
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - to add or subtract actor alignment points, use script call:
+#       change_actor_alignment(actor_id, amount)
+# - to add or subtract party alignment points, use script call:
+#       change_party_alignment(amount)
+# - to assign party alignment (average actor alignment) to a variable, 
+#   use script call:
+#       check_party_alignment(var_id)
+# - to temporarily assign actor alignment to a variable, 
+#   use script call:
+#       check_actor_alignment(actor, var_id)
+# - to temporarily assign actor alignment name to a variable, 
+#   use script call:
+#       check_actor_alignment_name(actor, var_id)
+# - to temporarily assign party alignment name to a variable, 
+#   use script call:
+#       check_actor_alignment_name(var_id)
+#===============================================================================
+module BM
+  module ALIGN
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Alignment Customization
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    MAX = 100  # Change the upper of the bar.
+    # For example, if you set this to 100, the lowest alignment will be 0 and 
+    # the maximum will be 100.
+    LIST = {
+      #id => ["name", text color],
+      0 => ["Demonic", 18], 
+      1 => ["Evil",    10],
+      2 => ["Bad",      2],
+      3 => ["Neutral",  8],
+      4 => ["Good",    14],
+      5 => ["Saintly",  6],
+      6 => ["Divine",   0],
+    } # Do Not Remove
+    # The end slots of the array define what the alignment is if it exceeds your 
+    # set maximum or minimum value.
+    # What this means is that your actor will not become, for example, "Divine" 
+    # or "Pure Evil" unless his alignment goes above 200, if your MAX = 200, or 
+    # dips below 0.
+    # Add as many alignments as you like as long as there are an odd number.
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Visual Options
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    FONT_SIZE = 16
+    SHOW_ON_MENU = true # shows alignment gauge on main menu
+    SHOW_ON_FACE = true # shows alignment gauge on faces in status, skill, etc 
+    SHOW_NUMBER = true  # shows numerical value of alignment on gauge
+    SHOW_NAME = true    # shows alignment name on gauge
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Alignment Calculations
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    PARTY_INCLUDE_RESERVE = false 
+    # if true, party alignment includes all members,
+    # if false, only includes battle members
+  end
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#===============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_align] = 1.04
+BM.required(:bm_align, :bm_base, 1.00, :above)
+#==============================================================================
+module BM
+  module REGEXP
+    module ACTOR
+      INITIAL_ALIGN = /<(?:initial align|INI_ALIGN):[ ](\d+)>/i
+      MAX_ALIGN = /<(?:max align|MAX_ALIGN):[ ](\d+)>/i
+      MIN_ALIGN = /<(?:min align|MIN_ALIGN):[ ](\d+)>/i
+    end
+  end
+end
+#==============================================================================
+# ** Vocab
+#==============================================================================
+module Vocab
+  def self.alignment(id)
+    return "" unless BM::ALIGN::LIST.include?(id)
+    return BM::ALIGN::LIST[id][0]
+  end
+end
+#==============================================================================
+# ** DataManager
+#==============================================================================
+module DataManager  
+  #--------------------------------------------------------------------------
+  # * Alias: load_database
+  #--------------------------------------------------------------------------
+  class << self; alias :bm_align_ld :load_database; end
+  def self.load_database
+    bm_align_ld
+    load_notetags_bm_align
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: load_notetags_bm_align
+  #--------------------------------------------------------------------------
+  def self.load_notetags_bm_align
+    groups = [$data_actors]
+    for group in groups
+      for obj in group
+        next if obj.nil?
+        obj.load_notetags_bm_align
+      end
+    end
+  end
+end
+#==============================================================================
+# ** RPG::Actor
+#==============================================================================
+class RPG::Actor < RPG::BaseItem
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :align
+  attr_accessor :align_max
+  attr_accessor :align_min
+  #--------------------------------------------------------------------------
+  # * Cache: load_notetags_bm_align
+  #--------------------------------------------------------------------------
+  def load_notetags_bm_align
+    @align = (BM::ALIGN::MAX/2).to_i
+    @align_max = BM::ALIGN::MAX
+    @align_min = 0
+    self.note.split(/[\r\n]+/).each { |line|
+      case line
+      #---
+      when BM::REGEXP::ACTOR::INITIAL_ALIGN
+        @align = $1.to_i
+      when BM::REGEXP::ACTOR::MAX_ALIGN
+        @align_max = $1.to_i
+      when BM::REGEXP::ACTOR::MIN_ALIGN
+        @align_min = $1.to_i
+      #---
+      end
+    } # self.note.split
+  end
+end
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :align
+  attr_accessor :align_id
+  attr_accessor :align_name
+  #--------------------------------------------------------------------------
+  # Alias: Setup
+  #--------------------------------------------------------------------------
+  alias :bm_align_setup :setup
+  def setup(actor_id)
+    bm_align_setup(actor_id)
+    init_align
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: init_align
+  #--------------------------------------------------------------------------
+  def init_align
+    @align = actor.align
+    @align_max = actor.align_max
+    @align_min = actor.align_min
+  end
+  #--------------------------------------------------------------------------
+  # New Method: align id
+  #--------------------------------------------------------------------------
+  def align_id
+    increment = BM::ALIGN::MAX/(BM::ALIGN::LIST.size-1)
+    for i in 0..BM::ALIGN::LIST.size-1
+      if @align < (increment * 0.5  + increment * i).to_i
+        return @align_id = i
+      else
+        @align_id = i
+      end
+    end
+    return @align_id
+  end  
+  #--------------------------------------------------------------------------
+  # New Method: align rate
+  #--------------------------------------------------------------------------
+  def align_rate
+    align = [[@align, @align_max].min, @align_min].max
+    align.to_f / @align_max
+  end
+  #--------------------------------------------------------------------------
+  # New Method: align name
+  #--------------------------------------------------------------------------
+  def align_name; @align_name = Vocab.alignment(@align_id);  end
+end
+  
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window
+  #--------------------------------------------------------------------------
+  # * Alias: convert_escape_characters
+  #--------------------------------------------------------------------------
+  alias :bm_align_cec :convert_escape_characters
+  def convert_escape_characters(text)
+    result = bm_align_cec(text)
+    result = convert_bm_align_characters(result)    
+    return result
+  end
+  #--------------------------------------------------------------------------
+  def convert_bm_align_characters(result)
+    result.gsub!(/\eNAL\[(\d+)\]/i)  { Vocab.alignment($1.to_i) rescue "" }
+    result.gsub!(/\eAAL\[([-+]?\d+)\]/i) {  escape_actor_alignment($1.to_i) }
+    result.gsub!(/\ePAL/i)           { escape_party_alignment }
+    return result
+  end
+  #--------------------------------------------------------------------------
+  # new method: escape_actor_alignment
+  #--------------------------------------------------------------------------
+  def escape_actor_alignment(actor_id)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    return Vocab.alignment(actor.align_id)
+    return actor.align_name
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: check party alignment
+  #--------------------------------------------------------------------------
+  def check_party_alignment
+    total = 0
+    members = $game_party.battle_members
+    members = $game_party.members if BM::ALIGN::PARTY_INCLUDE_RESERVE
+    for actor in members
+      total += actor.align
+    end
+    return total/members.size
+  end
+  #--------------------------------------------------------------------------
+  # new method: escape_party_alignment
+  #--------------------------------------------------------------------------
+  def escape_party_alignment
+    align = check_party_alignment
+    increment = BM::ALIGN::MAX/(BM::ALIGN::LIST.size-1)
+    for i in 0..BM::ALIGN::LIST.size-1
+      if align < (increment * 0.5  + increment * i).to_i
+        align_id = i
+        return Vocab.alignment(align_id)
+      else
+        align_id = i
+      end
+    end
+    return Vocab.alignment(align_id)
+  end
+  #--------------------------------------------------------------------------
+  # New Method: Draw Actor Align with gauge
+  #--------------------------------------------------------------------------
+  def draw_actor_align_gauge(actor, x, y, width = 96)
+    contents.font.size = BM::ALIGN::FONT_SIZE
+    draw_gauge(x, y, width, actor.align_rate, align_color1, align_color(actor))
+    iw = width/(BM::ALIGN::LIST.size-1)
+    size = (BM::ALIGN::LIST.size-1)/2
+    cx = x + width/2
+    for i in 0..size
+      contents.fill_rect(cx + i*iw, y + 14, 1, 10, align_color1)
+      contents.fill_rect(cx - i*iw, y + 14, 1, 10, align_color1)
+    end
+    contents.font.color = align_color(actor)
+    draw_text(x, y + 14, width, line_height, actor.align_name, 1) if BM::ALIGN::SHOW_NAME
+    draw_text(x, y, width, line_height, actor.align, 1) if BM::ALIGN::SHOW_NUMBER
+    reset_font_settings
+  end   
+  #--------------------------------------------------------------------------
+  # * Alias: Draw Actor Face Graphic
+  #--------------------------------------------------------------------------
+  alias :bm_align_daf :draw_actor_face
+  def draw_actor_face(actor, x, y, *args)
+    bm_align_daf(actor, x, y, *args)
+    return unless BM::ALIGN::SHOW_ON_FACE
+    draw_actor_align_gauge(actor, x, y)
+  end
+  #--------------------------------------------------------------------------
+  # New Method: alignment colors
+  #--------------------------------------------------------------------------
+  def align_color1; text_color(8); end
+  def align_color(actor); text_color(BM::ALIGN::LIST[actor.align_id][1]); end
+end
+#=============================================================================#
+# ** Window_MenuStatus 
+#=============================================================================#
+class Window_MenuStatus < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * Alias: Draw Actor Face Graphic
+  #--------------------------------------------------------------------------
+  def draw_actor_face(actor, x, y, *args)
+    bm_align_daf(actor, x, y, *args)
+    return unless BM::ALIGN::SHOW_ON_MENU
+    return if $imported[:bm_menustatus] && BM::MENU::ACTOR_OPTIONS[:style] == 0
+    draw_actor_align_gauge(actor, x, y)
+  end
+end
+#==============================================================================#
+# ** Game_Interpreter
+#==============================================================================#
+class Game_Interpreter
+  #--------------------------------------------------------------------------
+  # * New Method: change alignment
+  #--------------------------------------------------------------------------
+  def change_actor_alignment(actor_id, amount)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return 0 if actor.nil?
+    actor.align += amount
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: change party alignment
+  #--------------------------------------------------------------------------
+  def change_party_alignment(amount)
+    members = $game_party.battle_members
+    members = $game_party.members if BM::ALIGN::PARTY_INCLUDE_RESERVE
+    for actor in members
+      actor.align += amount
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: check party alignment
+  #--------------------------------------------------------------------------
+  def check_party_alignment(var_id)
+    total = 0
+    members = $game_party.battle_members
+    members = $game_party.members if BM::ALIGN::PARTY_INCLUDE_RESERVE
+    for actor in members
+      total += actor.align
+    end
+    return $game_variables[var_id] = total/members.size
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: check actor alignment
+  #--------------------------------------------------------------------------
+  def check_actor_alignment(actor_id, var_id)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return 0 if actor.nil?
+    return $game_variables[var_id] = actor.align
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: check actor alignment name
+  #--------------------------------------------------------------------------
+  def check_actor_alignment_name(actor_id, var_id)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return 0 if actor.nil?
+    return $game_variables[var_id] = actor.align_name
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: check party alignment name
+  #--------------------------------------------------------------------------
+  def check_party_alignment_name(var_id)
+    align = check_party_alignment(var_id)
+    increment = BM::ALIGN::MAX/(BM::ALIGN::LIST.size-1)
+    for i in 0..BM::ALIGN::LIST.size-1
+      if align < (increment * 0.5  + increment * i).to_i
+        align_id = i
+        return $game_variables[var_id] = Vocab.alignment(align_id)
+      else
+        align_id = i
+      end
+    end
+    return $game_variables[var_id] = Vocab.alignment(align_id)
+  end  
+end
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

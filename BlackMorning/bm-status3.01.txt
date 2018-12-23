@@ -1,0 +1,1755 @@
+#==============================================================================
+# ** Blackmorning -> YEA - STATUS Addon: Elemental/Status Resistances & Rates
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 3.01
+#  released 01/29/2014
+#  updated Dec/30/2015
+# - fixed small status issue with luna engine
+#==============================================================================
+#  - INTRODUCTION -
+# - include resistances and infliction rates as well as parameters in YEA status 
+#   screen 
+#   resistances and parameter ratios in polygon graphical format.
+# - can toggle between windows with toggle button
+# - allows the actor's portraits to appear or not in different status windows
+#   - large portrait for actor if available 
+#    found in folder assigned to portrait/bust images (see BM-Base)
+#    file format -  face_name-face-index
+#    (size:270px x 290px)
+# - adds bio info (height, age, birthplace. etc) can be switched with YEA by 
+#   clicking on it
+#==============================================================================
+# ? Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base and YEA - Status Menu but above ? Main. 
+# * need TRGSSX.dll in folder with game.exe
+# If using BM - Advanced Menu, put this below it.
+# Remember to save.
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Actor's Notetag
+# To set an actor's initial age, enter:
+#       <age: number>
+# To set an actor's birthplace to x, enter:
+#       <birthplace: x>
+# To set an actor's height to x, enter:
+#       <height: x>
+# To set an actor's custom bio y to x, enter:
+#       <cbio y: x>
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Message Codes (x is actor_id)
+# To write an actor's age, enter:
+# \aage[x]
+# To write an actor's birthplace, enter:
+# \abirth[x]
+# To write an actor's height, enter:
+# \aheight[x]
+# To write an actor's custom bio y, enter:
+# \abio[y, x]
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Script Codes (x is actor_id, n is new value, c is custombio id)
+# change bio properties ingame:
+# $game_actors[x].set_age = n
+# $game_actors[x].set_height = n
+# $game_actors[x].set_birthplace = "n"
+# $game_actors[x].set_custom_bio[c] = "n"
+#------------------------------------------------------------------------------
+# * add this to the COMMANDS on YEA - status menu where you want it to show:
+#      [    :element,      "Elements"],
+#      [    :state,        "States"],
+#      [    :infliction,   "Attributes"],
+#      [    :resistance,   "Resistances"],
+#      [    :bmproperties, "Properties"], #can be used instead of :properties
+#==============================================================================
+module BM
+  module STATUS
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # - Main Page Settings
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    GAUGE = {# show gauge with numbers
+      :exp   => true,
+      :hp    => true,
+      :mp    => true,
+      :tp    => true,
+      :param => true,
+    }   
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    # Background Options
+    # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    BG_OPTIONS ={
+      :win_opacity  => 255,    # window opacity for menu
+      :show_bg_img  => false, # show background image
+      :bg_image     => "Wallpaper",   # image name (Located in Graphics/System
+      :bg_opacity   => 255,  # background image opacity
+      :bg_scroll_x  => 1,    # horizontal movement
+      :bg_scroll_y  => 0,    # vertical movement
+    }# DO NOT REMOVE 
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # - BM Properties Window Settings -
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # BM properties is similar to Properties in YEA Status, but the properties 
+    # will automatically split into equal columns. 
+    # These settings adjust the way the properties window visually appears.
+    # Change whether or not they appear, and what order they will appear in.
+    # can use YEA's if you want to assign each column.
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # :hit,:eva,:cri,:cev,:mev,:mrf,:cnt,:hrg,:mrg,:trg
+    # :tgr,:grd,:rec,:pha,:mcr,:tcr,:pdr,:mdr,:fdr,:exr
+    # :wur,:gut,:hcr,:tcr_y,:hp_physical,:mp_physical,:hp_magical,:mp_magical
+    # :blank   (makes a empty entry for spacing, can be used in YEA or BM)
+    # :hblank when you want half line empty
+    BMPROPERTIES_COLUMN =[
+      :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, 
+      :cdr, :wur,     # Requires YEA - Skill Restrictions 
+      :gut, # Requires Bubs - Guts Effects
+      :tgr, :grd, :rec, :pha, :mcr,
+      :hcr, :tcr_y,    # Requires YEA - Skill Cost Manager
+      :tcr, :exr, :hrg, :mrg, :trg, :pdr, :mdr, :fdr,
+      :hp_physical, :mp_physical, :hp_magical, :mp_magical,  # Requires YEA - Convert Damage
+    ] # DO NOT REMOVE  
+    NUM_COL = 2 #default = 3
+    PROPERTIES_FULL_NAME = true # values set in BM-Base script
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # - Biography Window Settings -
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # These settings adjust the way the biography appears
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    BIO_INFO = [:blank,:align, :age, :gender, :birthplace, :height, :custom_bio1, :custom_bio2]
+    ACTOR_BIO_INFO = {}
+    # for custom actor bio list
+    #format: ACTOR_BIO_INFO[actor_id] = [custom list]
+    ACTOR_BIO_INFO[1] = [:blank,:align, :age, :gender, :birthplace, :height]
+    #ACTOR_BIO_INFO[2] = [:blank,:align, :age, :gender, :birthplace, :height]
+    
+    
+    # put :blank when you want a line empty,:hblank when you want half line empty
+    BIO_INFO_TEXT = {
+      :align      => "Alignment:", # requires BM alignment
+      :age        => "Age:", 
+      :gender     => "Gender:", # Bubs 
+      :birthplace => "Birthplace:", 
+      :height     => "Height:",
+      :nickname   => "Nickname:",
+    } # DO NOT REMOVE
+    CBIO_INFO_TEXT ={ # custom bio info that you create, up to custom_bio10
+      :custom_bio1    => "Species:",
+      :custom_bio2    => "Weight:",
+      :custom_bio3    => "",
+      :custom_bio4    => "",
+      :custom_bio5    => "",
+      :custom_bio6    => "",
+      :custom_bio7    => "",
+      :custom_bio8    => "",
+      :custom_bio9    => "",
+      :custom_bio10   => "",      
+    } # DO NOT REMOVE
+    BIO_FONT_SIZE = 22 # font size of bio info text
+    YEA_BIO_BOX = false # background box for YEA bio
+    HEIGHT_UNIT = "%s cm" # %s is the height given in actor's notebox
+    EMPTY_BIO = "--"
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # - ACTOR Portrait -
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # shows the actor's portrait in the background for the status screens you want, 
+    # using the COMMANDS from YEA Status.
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    PORTRAIT_BACKGROUND = [:general,:biography,:titles,:rename,:retitle,:yeabio,:bmbio]
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Chart Options 
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # * all info on window for new element/state/infliction/resistance Scene when 
+    # selected in status menu, otherwise will toggle
+    ONE_PAGE = {
+      :element => true,
+      :state   => true,
+      :infliction => false,
+      :resistance  => false,
+    } # DO NOT REMOVE    
+    LIST_ITEMS_ORDER={
+      :element => [9,10,3,4,5,6,7,8], # elements you want shown
+      :state   => [2..8],  # states you want shown
+      :param   => [2..7],  # parameters you want shown
+    } # DO NOT REMOVE       
+    CHART_ITEMS_ORDER={#order can differ from list for better visuals
+      :element => [9,3,4,5,10,6,7,8], # elements you want shown
+      :state   => [2..8],  # states you want shown
+      :param   => [2..7],  # parameters you want shown
+    } # DO NOT REMOVE 
+    # * format of info
+    # 0 .. numbers
+    # 1 .. chart
+    # 2 .. chart & numbers
+    # 3 .. numbers (: spacing leaves blank size of chart)
+    # 1, 2 must have «KGC bitmap expansion».
+    INFO_STYLE = {
+      :element => 2,
+      :state   => 2,
+      :param   => 2,
+      :resist  => 2,
+      :inflict => 3,
+    } # DO NOT REMOVE
+    CHART_FONT_SIZE = 18
+    # * resistance number format
+    # 0 .. Attributes: normal 100, (negative absorption) 99 or less reduce, weakness more than 101
+    # State: Additional success rate (susceptibility)
+    # boosted resistance to inside, susceptibility to outside
+    # 1 .. Attribute: Normal, (absorption 101 or more) reduction, plus weakness minus 0
+    # State: Additional evasion rate (hardness apply)
+    # boosted resistance to outside, susceptibility to inside
+    NUMBER_STYLE = {
+      :element => 1,
+      :state   => 1,
+      :param   => 0,
+    } # DO NOT REMOVE
+    PARAMETER_NAME = { 
+      :element        => "Elemental",
+      :state          => "States",
+      :resist         => "Resistance",
+      :inflict        => "Infliction",
+    } # DO NOT REMOVE
+    #------------------------------------------------------------------------
+    # Chart Icons
+    #------------------------------------------------------------------------
+    # Assign Icons for the charts (parameters, elements and states)
+    # *Note* If you're using BM-Icons, and want to use those same icons, 
+    # remove or comment (#) them out. (states would be made default from database)
+    CHART_ICONS={
+    :param => {
+      2 => 900, # ATK,   ATtacK power
+      3 => 901, # DEF,   DEFense power
+      4 => 902, # MAT,   Magic ATtack power
+      5 => 903, # MDF,   Magic DeFense power
+      6 => 904, # AGI,   AGIlity
+      7 => 905, # LUK,   LUcK  
+      }, # DO NOT REMOVE
+    :element   => {  
+      3  => 104,  # Fire element.
+      4  => 105,  # Ice element.
+      5  => 106,  # Volt element.
+      6  => 107,  # Earth element.
+      7  => 108,  # Water element.
+      8  => 109,  # Air element.
+      9  => 110,  # Light element.
+      10 => 111,  # Dark element.
+      }, # DO NOT REMOVE
+    :state   => {  
+     # 2  => 104,  
+     # 3  => 105,  
+     # 4  => 106, 
+     # 5  => 107, 
+     # 6  => 108, 
+     # 7  => 109,
+     # 8  => 110,  
+     # 9 => 111, 
+      }, # DO NOT REMOVE
+    } # DO NOT REMOVE
+    #------------------------------------------------------------------------
+    # Chart Graphics
+    #------------------------------------------------------------------------
+    LINE_COLOR = {
+      :element => Color.new(128, 255, 128),
+      :state   => Color.new(228, 255, 128),
+      :param   => Color.new(228,  55,  28),
+    } # DO NOT REMOVE
+    BASE_COLOR = {
+      :element => Color.new(128, 192, 255),
+      :state   => Color.new(128, 192, 255),
+      :param   => Color.new(128, 192, 255),
+    } # DO NOT REMOVE
+    FLASH_COLOR = {
+      :element => Color.new(128, 255, 128),
+      :state   => Color.new(228, 255, 128),
+      :param   => Color.new(228,  55,  28),
+    } # DO NOT REMOVE
+    CHART_HIGHQUALITY = true    
+    CHART_FRAME_RATE = 0.2 # speed of blinking chart (<1 slower, >1 faster)
+
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # - Switch & Toggle Settings -
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # These are the switches that govern whether or not certain status items will
+    # appear and/or will be enabled. By binding them to a Switch, you can just
+    # set the Switch ON/OFF to show/hide or enable/disable a status command. If
+    # you do not wish to use this feature, set these commands to 0.
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    TOGGLE_ICON = 1027 #appears in bottom corner to show you can toggle screens
+    TOGGLE_BUTTON = :Z
+    TOGGLE_SOUND = true # uses default select sound if true
+    # toggle between multiple windows
+    # command => [command1, command2, command3, ...]
+    # command is what is placed in the YEA commands list
+    TOGGLE_WINDOWS={
+      :element    => [:element, :state],
+      :state      => [:state, :element],
+#      :element    => [:ele_resist, :ele_inflict],
+#      :state      => [:state_resist, :state_inflict],
+#      :general    => [:general, :bmbio,:yeabio],
+      :biography     => [:yeabio, :bmbio],
+      :parameters    => [:parameters, :bmproperties],
+      :bmproperties  => [:bmproperties, :parameters],
+      :resistance    => [:ele_resist, :state_resist],
+      :infliction    => [:ele_inflict, :state_inflict],
+    }# DO NOT REMOVE  
+    CHART_STATUS_COMMANDS ={
+    # switch Handler Method to :do_nothing when you don't want the confirm button
+    # to do anything
+    # :command => [EnableSwitch, ShowSwitch, Handler Method, Window Draw],
+      :bmproperties  => [ 0,  0, :do_nothing, :draw_bmprop],
+      :resistance    => [ 0,  0, :command_resist, :draw_resist], 
+      :infliction    => [ 0,  0, :command_inflict, :draw_inflict],
+      :element       => [ 0,  0, :command_elements, :draw_elemental],
+      :ele_resist    => [ 0,  0, :command_elements, :draw_ele_resist],
+      :ele_inflict   => [ 0,  0, :command_elements, :draw_ele_inflict],
+      :state         => [ 0,  0, :command_states, :draw_states],
+      :state_inflict => [ 0,  0, :command_states, :draw_state_inflict],
+      :state_resist  => [ 0,  0, :command_states, :draw_state_resist],
+      :yeabio        => [ 0,  0, :command_bio, :draw_actor_yeabiography],
+      :bmbio         => [ 0,  0, :command_bio, :draw_actor_bmbiography],
+    } # DO NOT REMOVE
+  end
+end
+#===============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#==============================================================================
+# ** module BM
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_status] = 3.01
+BM.required(:bm_status, :bm_base, 1.00, :above)
+BM.required(:bm_status, "YEA-StatusMenu", true, :above) 
+BM.required(:bm_status, "BitmapExtension", true, :above)    
+#==========================================================================
+# ** BM::Regexp
+#==========================================================================
+module BM
+  module REGEXP
+     module ACTOR
+       AGE = /<(?:AGE|age):[ ](\d+)>/i
+       BIRTHPLACE = /<(?:BIRTHPLACE|birthplace|birth|BIRTH):[ ](.*)>/i
+       HEIGHT = /<(?:HEIGHT|height):[ ](.*)>/i
+       CUSTOMBIO = /<(?:CBIO|cbio)[ ](\d+):[ ](.*)>/i
+     end
+  end
+end  
+#==========================================================================
+# ** BM::STATUS
+#==========================================================================
+module BM::STATUS
+  module_function
+  def convert_integer_array(chart)
+    array = LIST_ITEMS_ORDER[chart]
+    result = []
+    array.each { |i|
+      case i
+      when Range
+        result |= i.to_a
+      when Integer
+        result |= [i]
+      end
+    }
+    return result
+  end
+  #--------------------------------------------------------------------------
+  def convert_integer_chart_array(chart)
+    array = CHART_ITEMS_ORDER[chart]
+    result = []
+    array.each { |i|
+      case i
+      when Range
+        result |= i.to_a
+      when Integer
+        result |= [i]
+      end
+    }
+    return result
+  end
+  LIST_ITEMS_ORDER[:element] = convert_integer_array(:element)
+  LIST_ITEMS_ORDER[:state] = convert_integer_array(:state)
+  LIST_ITEMS_ORDER[:param] = convert_integer_array(:param)
+  CHART_ITEMS_ORDER[:element] = convert_integer_chart_array(:element)
+  CHART_ITEMS_ORDER[:state] = convert_integer_chart_array(:state)
+  CHART_ITEMS_ORDER[:param] = convert_integer_chart_array(:param)
+end
+#==============================================================================
+# ** DataManager
+#==============================================================================
+module DataManager  
+  #--------------------------------------------------------------------------
+  # * Alias: load_database
+  #--------------------------------------------------------------------------
+  class << self; alias :bm_status_ld :load_database; end
+  def self.load_database
+    bm_status_ld
+    load_notetags_bm_status
+  end  
+  #--------------------------------------------------------------------------
+  # * New Method: load_notetags_bm_status
+  #--------------------------------------------------------------------------
+  def self.load_notetags_bm_status
+    groups = [$data_actors]
+    for group in groups
+      for obj in group
+        next if obj.nil?
+        obj.load_notetags_bm_status
+      end
+    end
+  end
+end
+#==============================================================================
+# ** RPG::Actor
+#==============================================================================
+class RPG::Actor < RPG::BaseItem
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :age
+  attr_accessor :birthplace
+  attr_accessor :height
+  attr_accessor :custom_bio
+  #--------------------------------------------------------------------------
+  # * Cache: load_notetags_bm_status
+  #--------------------------------------------------------------------------
+  def load_notetags_bm_status
+    @custom_bio = {}
+    for i in 1..10
+      @custom_bio[i] = BM::STATUS::EMPTY_BIO
+    end
+    @age = BM::STATUS::EMPTY_BIO
+    @birthplace = BM::STATUS::EMPTY_BIO
+    @height = BM::STATUS::EMPTY_BIO
+    self.note.split(/[\r\n]+/).each { |line|
+      case line
+      #---
+      when BM::REGEXP::ACTOR::AGE
+        @age = $1.to_i
+      when BM::REGEXP::ACTOR::BIRTHPLACE
+        @birthplace = $1
+      when BM::REGEXP::ACTOR::HEIGHT
+        @height = $1
+      when BM::REGEXP::ACTOR::CUSTOMBIO
+        @custom_bio[$1.to_i] = $2
+      #---
+      end
+    } # self.note.split
+  end
+end
+#==============================================================================
+# ** Game_Actor
+#==============================================================================
+class Game_Actor < Game_Battler  
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :age
+  attr_accessor :set_age
+  attr_accessor :birthplace
+  attr_accessor :set_birthplace
+  attr_accessor :height
+  attr_accessor :set_height
+  attr_accessor :gender  
+  attr_accessor :custom_bio
+  attr_accessor :set_custom_bio
+  #--------------------------------------------------------------------------
+  # Alias: Setup
+  #--------------------------------------------------------------------------
+  alias :bm_status_setup :setup
+  def setup(actor_id)
+    bm_status_setup(actor_id)
+    init_bio
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: init_bio
+  #--------------------------------------------------------------------------
+  def init_bio
+    @init_year = 0
+    @init_year = $game_variables[HM_SEL::YEAR] if BM::SELCHAR_CALENDER
+    @set_age = actor.age
+    @set_height = actor.height
+    @set_birthplace = actor.birthplace
+    @gender = gender
+    @set_custom_bio = {}
+    for i in 1..10
+      @set_custom_bio[i] = actor.custom_bio[i]
+    end
+  end
+  #--------------------------------------------------------------------------
+  alias_bio = 1..10
+  alias_bio.each {|i|
+  aStr = %Q(
+  attr_accessor :custom_bio#{i}
+  attr_accessor :set_custom_bio#{i}
+  def custom_bio#{i}
+    @set_custom_bio[#{i}]
+  end
+  )
+  module_eval(aStr)
+  } # Do not remove this.
+  #--------------------------------------------------------------------------
+  def height
+    return @set_height if @set_height == BM::STATUS::EMPTY_BIO
+    height = sprintf(BM::STATUS::HEIGHT_UNIT, @set_height)
+  end
+  #--------------------------------------------------------------------------
+  def birthplace
+    @set_birthplace
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: gender
+  #--------------------------------------------------------------------------
+  def gender
+    return "" unless $imported["BubsGenderFunctions"]
+    n = BM::STATUS::EMPTY_BIO
+    n = "Male" if male?
+    n = "Female" if female?
+    return n
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: age
+  #--------------------------------------------------------------------------
+  def age
+    return @set_age unless BM::SELCHAR_CALENDER
+    @set_age = actor.age + ($game_variables[HM_SEL::YEAR] - @init_year)
+  end
+end
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window
+  #--------------------------------------------------------------------------
+  # * Alias: convert_escape_characters
+  #--------------------------------------------------------------------------
+  alias :bm_status_cec :convert_escape_characters
+  def convert_escape_characters(text)
+    result = bm_status_cec(text)
+    result = convert_bm_status_characters(result)    
+    return result
+  end
+  #--------------------------------------------------------------------------
+  def convert_bm_status_characters(result)
+    result.gsub!(/\eAAGE\[([-+]?\w+)\]/i)  { escape_actor_bio(:age, $1.to_i) }
+    result.gsub!(/\eABIRTH\[([-+]?\w+)\]/i)  { escape_actor_bio(:birthplace, $1.to_i) }
+    result.gsub!(/\eAHEIGHT\[([-+]?\w+)\]/i)  { escape_actor_bio(:height, $1.to_i) }
+    result.gsub!(/\eAGEN\[([-+]?\w+)\]/i)  { escape_actor_bio(:gender, $1.to_i) }
+    result.gsub!(/\eABIO\[(\d+),([-+]?\w+)\]/i)  { escape_actor_cbio($1.to_i, $2.to_i) }
+    return result
+  end
+  #--------------------------------------------------------------------------
+  def escape_actor_bio(type, actor_id)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    text = eval("actor.#{type}")
+    return text
+  end
+  #--------------------------------------------------------------------------
+  def escape_actor_cbio(type, actor_id)
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    text = eval("actor.custom_bio#{type}")
+    return text
+  end
+end
+#==============================================================================
+module BMCHART
+  #--------------------------------------------------------------------------
+  # * adds to: initialize
+  #--------------------------------------------------------------------------
+  def initialize(*args)
+    super(*args)
+    @duration = 0    
+    @element_chart_sprite = Sprite_Base.new
+    @state_chart_sprite = Sprite_Base.new
+    @param_chart_sprite = Sprite_Base.new
+    create_chart_sprite(@element_chart_sprite)
+    create_chart_sprite(@state_chart_sprite)
+    create_chart_sprite(@param_chart_sprite)
+  end 
+  #--------------------------------------------------------------------------
+  # * New Method: chart_starter_visibility
+  #--------------------------------------------------------------------------
+  def chart_starter_visibility
+    return unless @element_chart_sprite != nil   
+    @element_chart_sprite.visible = false
+    @state_chart_sprite.visible   = false
+    @param_chart_sprite.visible   = false
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Element Block
+  #--------------------------------------------------------------------------
+  def draw_elemental
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, dx, line_height, BM::STATUS::PARAMETER_NAME[:resist],1)
+    contents.draw_text(dx * 2, 0, dx, line_height, BM::STATUS::PARAMETER_NAME[:inflict],1) 
+    type = BM::STATUS::INFO_STYLE[:element]
+    draw_stelpa_info(:element,:both, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Element resist
+  #--------------------------------------------------------------------------
+  def draw_ele_resist
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, contents.width - dx, line_height, BM::STATUS::PARAMETER_NAME[:resist],1)
+    type = BM::STATUS::INFO_STYLE[:resist]
+    draw_stelpa_info(:element,:resist, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Element inflict
+  #--------------------------------------------------------------------------
+  def draw_ele_inflict
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, contents.width - dx, line_height, BM::STATUS::PARAMETER_NAME[:inflict],1)
+    type = BM::STATUS::INFO_STYLE[:inflict]
+    draw_stelpa_info(:element,:inflict, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw States Block
+  #--------------------------------------------------------------------------
+  def draw_states
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, dx, line_height, BM::STATUS::PARAMETER_NAME[:resist],1)
+    contents.draw_text(dx * 2, 0, dx, line_height, BM::STATUS::PARAMETER_NAME[:inflict],1) 
+    type = BM::STATUS::INFO_STYLE[:state]
+    draw_stelpa_info(:state,:both, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Element resist
+  #--------------------------------------------------------------------------
+  def draw_state_resist
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, contents.width - dx, line_height, BM::STATUS::PARAMETER_NAME[:resist],1)
+    type = BM::STATUS::INFO_STYLE[:resist]
+    draw_stelpa_info(:state,:resist, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw Element inflict
+  #--------------------------------------------------------------------------
+  def draw_state_inflict
+    dx = contents.width / 3
+    contents.draw_text(dx, 0, contents.width - dx, line_height, BM::STATUS::PARAMETER_NAME[:inflict],1)
+    type = BM::STATUS::INFO_STYLE[:inflict]
+    draw_stelpa_info(:state,:inflict, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw resist
+  #--------------------------------------------------------------------------
+  def draw_resist
+    contents.font.bold = true
+    change_color(system_color)
+    contents.draw_text(0, 0, contents.width, line_height, BM::STATUS::PARAMETER_NAME[:resist],1)
+    contents.font.bold = false
+    type = BM::STATUS::INFO_STYLE[:resist]
+    draw_four_column_info(x, line_height * 3 / 2, :resist, type)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: Draw inflict
+  #--------------------------------------------------------------------------
+  def draw_inflict
+    contents.font.bold = true
+    change_color(system_color)
+    contents.draw_text(0, 0, contents.width, line_height, BM::STATUS::PARAMETER_NAME[:inflict],1)
+    contents.font.bold = false
+    type = BM::STATUS::INFO_STYLE[:resist]
+    draw_four_column_info(x, line_height * 3 / 2, :inflict, type)
+  end
+  #--------------------------------------------------------------------------
+  def draw_four_column_info(x, y, info, type)
+    chart = :element
+    r = 0
+    r = (contents.width - x)/12 - 4 if type > 0   
+    width = (contents.width - r*7)/2
+    contents.font.size = YEA::STATUS::PROPERTIES_FONT_SIZE      
+      if [1, 2, 3].include?(type) && $imported["BitmapExtension"]  
+        x = draw_actor_chart(x, y, r, chart, type) - 10
+      else; x = 0
+      end
+      if [0, 2, 3].include?(type)        
+        x = draw_actor_numbers(x, y, width, chart, info)
+      end
+    chart = :state
+      if [1, 2, 3].include?(type) && $imported["BitmapExtension"]  
+        x = draw_actor_chart(x, y, r, chart, type)
+      else; x = 0
+      end
+      if [0, 2, 3].include?(type) 
+        x = contents.width - width
+        x = draw_actor_numbers(x, y, width, chart, info)
+      end
+    return x
+  end
+  #--------------------------------------------------------------------------
+  def draw_stelpa_info(chart, info, type)
+    contents.font.bold = true
+    change_color(system_color)
+    contents.draw_text(0, 0, contents.width / 3, line_height, BM::STATUS::PARAMETER_NAME[chart],1)
+    contents.font.bold = false
+    reset_font_settings
+    contents.font.size = BM::STATUS::CHART_FONT_SIZE
+    draw_actor_chart_and_numbers(0, line_height * 3 / 2, chart, info, type)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_chart_and_numbers
+  #--------------------------------------------------------------------------
+  def draw_actor_chart_and_numbers(x, y, chart, info, type)
+    r = 0
+    r  = [(contents.width - x - 80)/6,(contents.height - y - 80)/2].min if type > 0
+    if [1, 2, 3].include?(type) && $imported["BitmapExtension"]
+      x = draw_actor_chart(x, y, r, chart, type)      
+    else; x = 0
+    end
+    if [0, 2, 3].include?(type)
+      contents.font.size = YEA::STATUS::PROPERTIES_FONT_SIZE      
+      w = (contents.width - x)/2 - 4
+      x = draw_actor_numbers(x, y, w, chart, info)
+    end
+    return x
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_chart
+  #--------------------------------------------------------------------------
+  def draw_actor_chart(x, y, radius, chart, type)
+    Bitmap.smoothing_mode = TRGSSX::SM_ANTIALIAS if BM::STATUS::CHART_HIGHQUALITY
+    r  = radius
+    cx = x + r + 28
+    cy = y + r + 28
+    pw = (Bitmap.smoothing_mode == TRGSSX::SM_ANTIALIAS ? 2 : 1)
+    items_shown = BM::STATUS::CHART_ITEMS_ORDER[chart]
+    size = 0 
+    for i in items_shown; size += 1; end
+    draw_chart_line(cx, cy, r, size, 3, pw, chart) unless type == 3
+    points = []
+    items_shown.each_with_index { |e, i|
+      icon1 = chart_icon(chart, e)
+      n   = graph_values(chart,e)
+      n   = 100 - n if BM::STATUS::NUMBER_STYLE[chart] == 1   
+      n   = [[n, -100].max, 200].min
+      dr  = r * (n + 100) / 100 / 3
+      rad = Math::PI * (360.0 * i / size - 90.0) / 180.0
+      dx  = cx + Integer(dr * Math.cos(-rad))
+      dy  = cy + Integer(dr * Math.sin(rad))
+      points << [dx, dy]
+      dx = cx + Integer((r + 14) * Math.cos(-rad)) - 12
+      dy = cy + Integer((r + 14) * Math.sin(rad))  - 12
+      draw_icon(icon1, dx, dy) unless type == 3
+      i += 1
+    }
+    unless type == 3
+      if chart == :element;  @element_chart_sprite.visible = true
+      elsif chart == :state; @state_chart_sprite.visible = true
+      elsif chart == :param; @param_chart_sprite.visible = true
+      end
+      draw_chart(cx, cy, r, points, pw, chart)
+      draw_chart_flash(x, y, r, points, pw, chart)
+    end
+    Bitmap.smoothing_mode = TRGSSX::SM_DEFAULT
+    return (x + cx + r + 42)
+  end  
+  #--------------------------------------------------------------------------
+  def graph_values(chart,id)
+    n = 0
+    case chart
+    when :element
+      n    = eval("(@actor.#{chart}_rate(#{id})*100).to_i")
+      if $imported["YEA-ElementReflect"] && @actor.element_reflect_rate(id) != 0
+        n = -(@actor.element_reflect_rate(id) * 100).to_i
+      elsif $imported["Elemental_Modifiers"]
+        n  = (@actor.element_resist_rate(id) * 100).to_i 
+      end
+    when :state
+      n    = eval("(@actor.#{chart}_rate(id)*100).to_i")
+      n    = 0 if @actor.state_resist_set.include?(id)
+    when :param
+      n    = (param_ratio(@actor, id) * 100).to_i
+    end
+    return n
+  end
+  #--------------------------------------------------------------------------
+  def chart_icon(chart, id)
+    if BM::STATUS::CHART_ICONS[chart].include?(id)
+      return icon = BM::STATUS::CHART_ICONS[chart][id]
+    elsif $imported[:bm_icon] 
+      return icon = eval("Icon.#{chart}(id)")
+    elsif chart == :state
+      return icon = $data_states[id].icon_index
+    else 
+      return icon = 0
+    end    
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: draw_actor_numbers
+  #--------------------------------------------------------------------------
+  def draw_actor_numbers(x, y, width, chart, info)
+    dx = contents.width / 3
+    case info
+    when :resist
+      x = show_actor_resist(x, y, width, chart)
+    when :inflict
+      x = show_actor_inflict(x, y, width, chart)
+    when :both
+      x = show_actor_compound(x, y, width, chart)
+    end
+    return x + width
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: draw both resistance and inflictions
+  #--------------------------------------------------------------------------
+  def show_actor_compound(x, y, width, chart)
+    items_shown = BM::STATUS::LIST_ITEMS_ORDER[chart]
+    for id in items_shown
+      value = eval("#{chart}_number(id)")     
+      colour = Color.new(0, 0, 0, translucent_alpha/2)
+      rect = Rect.new(x + 1, y + 1, width - 2, line_height - 2)
+      contents.fill_rect(rect, colour)
+      change_color(value[2])
+      draw_text(x, y, width - 6, line_height, value[0])      
+      draw_text(x, y, width - 6, line_height, value[1], 2)
+      unless chart == :param
+        dx = contents.width - (contents.width - x)/2 + 6
+        colour = Color.new(0, 0, 0, translucent_alpha/2)
+        rect = Rect.new(dx + 1, y + 1, width - 2, line_height - 2)
+        contents.fill_rect(rect, colour)
+        change_color(value[4])
+        draw_text(dx, y, width - 6, line_height, value[0])      
+        draw_text(dx, y, width - 6, line_height, value[3], 2)
+      end
+      y += line_height
+      break if y + line_height > contents.height
+      
+    end
+    return x
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: draw inflictions
+  #--------------------------------------------------------------------------
+  def show_actor_inflict(x, y, width, chart)
+    items_shown = BM::STATUS::LIST_ITEMS_ORDER[chart]
+    dy = y
+    for id in items_shown
+      value = eval("#{chart}_number(id)")     
+      colour = Color.new(0, 0, 0, translucent_alpha/2)
+      rect = Rect.new(x + 1, y + 1, width - 2, line_height - 2)
+      contents.fill_rect(rect, colour)
+      change_color(value[4])
+      draw_text(x, y, width - 6, line_height, value[0])      
+      draw_text(x, y, width - 6, line_height, value[3], 2)
+      y += line_height
+      if y + line_height > contents.height
+        x = x + width + 6
+        y = dy
+      end
+    end
+    return x
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: draw resist
+  #--------------------------------------------------------------------------
+  def show_actor_resist(x, y, width, chart)
+    items_shown = BM::STATUS::LIST_ITEMS_ORDER[chart]
+    dy = y
+    for id in items_shown
+      value = eval("#{chart}_number(id)")     
+      colour = Color.new(0, 0, 0, translucent_alpha/2)
+      rect = Rect.new(x + 1, y + 1, width - 2, line_height - 2)
+      contents.fill_rect(rect, colour)
+      change_color(value[2])
+      draw_text(x, y, width - 6, line_height, value[0])      
+      draw_text(x, y, width - 6, line_height, value[1], 2)
+      y += line_height
+      if y + line_height > contents.height
+        x = x + width + 6
+        y = dy
+      end
+    end
+    return x
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: element_number
+  #--------------------------------------------------------------------------
+  def element_number(id)
+    value1 = graph_values(:element,id)
+    if $imported["YEA-ElementReflect"] && @actor.element_reflect_rate(id) != 0
+      value1 = (@actor.element_reflect_rate(id) * 100).to_i
+      color1 = text_color(22)
+      text1 = sprintf("#{Vocab.xparam_a(5)} %d%", value1)      #shows mrf
+    else
+      color1 = percent_color((value1 - 100) * -1.to_i)
+      if value1 == 0; text1 = 'Immune'
+      elsif value1 < 0; text1 = 'Absorb'
+      else
+        value1 = (value1 - 100) * -1.to_i if BM::STATUS::NUMBER_STYLE[:element] == 1
+        text1 = sprintf("%d%", value1)
+      end
+    end       
+    value2 = (@actor.atk_element_rate(id) * 100).to_i
+    value2 = (@actor.element_attack_rate(id) * 100).to_i if $imported["Elemental_Modifiers"]
+    color2 = percent_color(value2)
+    text2 = sprintf("%d%", value2) 
+    return [Vocab.element(id), text1, color1, text2, color2]
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: state_number
+  #--------------------------------------------------------------------------
+  def state_number(id)
+    value1 = graph_values(:state,id)
+    color1 = percent_color((value1 - 100) * -1.to_i)
+    if value1 == 0; text1 = 'Immune'
+    else
+      value1 = (value1 - 100) * -1.to_i if BM::STATUS::NUMBER_STYLE[:state] == 1
+      text1 = sprintf("%d%", value1)
+    end
+    value2 = (@actor.atk_states_rate(id) * 100).to_i
+    color2 = percent_color(value2)
+    text2 = sprintf("%d%", value2)  
+    return [Vocab.state(id), text1, color1, text2, color2]
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: param_number
+  #--------------------------------------------------------------------------
+  def param_number(id)
+    text1 = @actor.param(id).group
+    color1 = normal_color
+    return [Vocab.param(id), text1, color1, text1, color1]
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart_line
+  #--------------------------------------------------------------------------
+  def draw_chart_line(cx, cy, r, n, breaks, pw, chart)
+    color = BM::STATUS::BASE_COLOR[chart].clone
+    contents.draw_regular_polygon(cx, cy, r, n, color, pw)
+    color.alpha = color.alpha * 5 / 8
+    contents.draw_spoke(cx, cy, r, n, color, pw)
+    (1..breaks).each { |i|
+      contents.draw_regular_polygon(cx, cy, r * i / breaks, n, color, pw)
+    }
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart
+  #--------------------------------------------------------------------------
+  def draw_chart(cx, cy, r, points, pw, chart)
+    contents.draw_polygon(points, BM::STATUS::LINE_COLOR[chart], 2)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_chart_flash
+  #--------------------------------------------------------------------------
+  def draw_chart_flash(x, y, r, points, pw, chart)
+    if chart == :element; sprite = @element_chart_sprite
+    elsif chart == :state; sprite = @state_chart_sprite
+    elsif chart == :param; sprite = @param_chart_sprite
+    else; return
+    end
+    points = points.clone
+    points.each { |pt| pt[0] -= x }
+    cx = x + r + 28
+    cy = y + r + 28
+    color = BM::STATUS::FLASH_COLOR[chart]
+    sprite.bitmap.clear
+    sprite.bitmap.fill_polygon(points, Color.new(0, 0, 0, 0), color)
+    sprite.ox = cx - x
+    sprite.oy = cy
+    sprite.x  = self.x + cx + standard_padding
+    sprite.y  = self.y + cy + standard_padding
+  end
+  #--------------------------------------------------------------------------
+  # * new method: update_chart
+  #--------------------------------------------------------------------------
+  def update_chart(sprite)
+    return if sprite == nil
+    sprite.update
+    zoom = opacity = 0
+    case @duration
+    when 0..11
+      zoom    = @duration / 11.0
+      opacity = 255
+    when 12..27
+      zoom    = 1
+      opacity = (27 - @duration) * 16
+    end
+    sprite.zoom_x  = sprite.zoom_y = zoom
+    sprite.opacity = opacity
+    @duration = (@duration + BM::STATUS::CHART_FRAME_RATE) % Graphics.frame_rate
+  end
+  #--------------------------------------------------------------------------
+  # * new method: create_chart_sprite
+  #--------------------------------------------------------------------------
+  def create_chart_sprite(sprite)
+    return if sprite == nil
+    sprite.z = 1000
+    sprite.bitmap = Bitmap.new(height - 32, height - 32)
+    sprite.ox = sprite.width  / 2
+    sprite.oy = sprite.height / 2
+    sprite.blend_type = 1
+    sprite.opacity = 0
+    sprite.visible = false
+  end  
+  #--------------------------------------------------------------------------
+  # * adds to: update
+  #--------------------------------------------------------------------------
+  def update
+    super
+    update_chart(@element_chart_sprite)
+    update_chart(@state_chart_sprite)
+    update_chart(@param_chart_sprite)
+  end  
+  #--------------------------------------------------------------------------
+  # * adds to: dispose
+  #--------------------------------------------------------------------------
+  def dispose
+    super
+    dispose_sprites(@element_chart_sprite)
+    dispose_sprites(@state_chart_sprite)
+    dispose_sprites(@param_chart_sprite)
+  end
+  #--------------------------------------------------------------------------
+  # * new Method: dispose
+  #--------------------------------------------------------------------------
+  def dispose_sprites(sprite)
+    return unless sprite != nil
+    sprite.bitmap.dispose 
+    sprite.dispose
+  end
+  #--------------------------------------------------------------------------
+  # * mew method: Z 
+  #--------------------------------------------------------------------------
+  def z=(value)
+    super(value)
+    @element_chart_sprite.z = z + 1 if @element_chart_sprite != nil
+    @state_chart_sprite.z   = z + 1 if @state_chart_sprite   != nil
+    @param_chart_sprite.z   = z + 1 if @param_chart_sprite   != nil
+  end
+end
+#==============================================================================
+# ** Window_StatusActor
+#==============================================================================
+class Window_StatusActor < Window_Base
+  if BM::MOVE_STATE_OVER_FACE
+    alias :bm_status_dai :draw_actor_icons
+    def draw_actor_icons(actor, x, y)
+      bm_status_dai(actor, 0, 72)
+    end
+  end
+end
+#==============================================================================
+# ** Window_StatusItem
+#==============================================================================
+class Window_StatusItem < Window_Base
+  include BMCHART 
+  #--------------------------------------------------------------------------
+  # * alias: initialize
+  #--------------------------------------------------------------------------
+  alias :bm_status_init :initialize
+  def initialize(*args)
+    @page = {}
+    bm_status_init(*args)
+  end   
+  #--------------------------------------------------------------------------
+  def current_page  
+    if @page[@command_window.current_symbol] == nil
+      @page[@command_window.current_symbol] = 0
+    end
+    return @page[@command_window.current_symbol]
+  end
+  #--------------------------------------------------------------------------
+  def new_page(symbol)
+    if current_page >= 0 && current_page < BM::STATUS::TOGGLE_WINDOWS[symbol].size-1
+      @page[symbol] += 1
+    elsif current_page == BM::STATUS::TOGGLE_WINDOWS[symbol].size-1
+      @page[symbol] = 0
+    end
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  # alias: draw_window_contents
+  #--------------------------------------------------------------------------
+  alias :bm_status_dwc :draw_window_contents
+  def draw_window_contents
+    chart_starter_visibility
+    if BM::STATUS::TOGGLE_WINDOWS.include?(@command_window.current_symbol)
+      page_name = BM::STATUS::TOGGLE_WINDOWS[@command_window.current_symbol][current_page]
+      if BM::STATUS::PORTRAIT_BACKGROUND.include?(page_name)
+        draw_actor_portrait(@actor, 0, 10, false)
+      end
+      case page_name
+      when :general
+        draw_actor_general
+      when :parameters
+        draw_parameter_graph
+      when :properties
+        draw_properties_list
+      when :biography, :rename, :retitle
+        draw_actor_biography
+      else
+        draw_toggle_custom
+      end
+      dx = contents.width - 24; dy = contents.height - 24
+      draw_icon(BM::STATUS::TOGGLE_ICON, dx, dy)
+    else
+      bm_status_dwc    
+    end    
+  end
+  #--------------------------------------------------------------------------
+  # draw_toggle_custom
+  #--------------------------------------------------------------------------
+  def draw_toggle_custom
+    current_symbol = BM::STATUS::TOGGLE_WINDOWS[@command_window.current_symbol][current_page]
+    return unless YEA::STATUS::CUSTOM_STATUS_COMMANDS.include?(current_symbol)
+    method(YEA::STATUS::CUSTOM_STATUS_COMMANDS[current_symbol][3]).call
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: draw_actor_general
+  #--------------------------------------------------------------------------
+  def draw_actor_general
+    contents.font.bold = true
+    change_color(system_color)
+    text = YEA::STATUS::PARAMETERS_VOCAB
+    draw_text(0, 0, contents.width, line_height, text, 1)
+    reset_font_settings
+    x = 0; y = line_height * 3 / 2
+    dx = draw_actor_chart_and_numbers(x, y, :param, :both, 1) - 14
+    draw_general_parameters(dx)
+  end  
+  #--------------------------------------------------------------------------
+  # * overwrite: draw_general_parameters
+  #--------------------------------------------------------------------------
+  def draw_general_parameters(dx)
+    dy = line_height * 3 / 2
+    dw = (contents.width - dx) / 3 - 6    
+    draw_actor_level(dx + dw * 0, line_height * 0 + dy, dw)
+    draw_actor_exp(dx + dw * 1 + 6, line_height * 0 + dy, (dw + 3)*2)
+    draw_exp_gauge(dx + dw * 0, line_height * 0.7 + dy, (dw+3)*3) if BM::STATUS::GAUGE[:exp]
+    
+    draw_actor_param(0, dx + dw * 0, line_height * 2 + dy, dw)
+    draw_gauge(dx + dw * 0, line_height * 2.7 + dy, dw, @actor.hp_rate, hp_gauge_color1, hp_gauge_color2) if BM::STATUS::GAUGE[:hp]
+    draw_actor_param(1, dx + dw * 1 + 6, line_height * 2 + dy, dw)
+    draw_gauge(dx + dw * 1 + 6, line_height * 2.7 + dy, dw, @actor.mp_rate, mp_gauge_color1, mp_gauge_color2) if BM::STATUS::GAUGE[:mp]
+    draw_actor_tp(@actor, dx + dw * 2 + 12, line_height * 2 + dy, dw)
+    draw_gauge(dx + dw * 2 + 12, line_height * 2.7 + dy, dw, @actor.tp_rate, tp_gauge_color1, tp_gauge_color2) if BM::STATUS::GAUGE[:tp]
+    
+    draw_actor_param(2, dx + dw * 0, line_height * 4 + dy, dw)
+    draw_actor_param(4, dx + dw * 1 + 6, line_height * 4 + dy, dw)
+    draw_actor_param(6, dx + dw * 2 + 12, line_height * 4 + dy, dw)
+    dy += 6
+    draw_actor_param(3, dx + dw * 0, line_height * 5 + dy, dw)
+    draw_actor_param(5, dx + dw * 1 + 6, line_height * 5 + dy, dw)
+    draw_actor_param(7, dx + dw * 2 + 12, line_height * 5 + dy, dw)
+    if BM::STATUS::GAUGE[:param]
+      draw_gauge(dx + dw * 0, line_height * 4.1 + dy, dw, param_ratio(@actor,2),  param_gauge1(2),  param_gauge2(2))
+      draw_gauge(dx + dw * 1+6, line_height * 4.1 + dy, dw, param_ratio(@actor,4),  param_gauge1(4),  param_gauge2(4))
+      draw_gauge(dx + dw * 2+12, line_height * 4.1 + dy, dw, param_ratio(@actor,6),  param_gauge1(6),  param_gauge2(6))
+      dy += 6
+      draw_gauge(dx + dw * 0, line_height * 5.1 + dy, dw, param_ratio(@actor,3),  param_gauge1(3),  param_gauge2(3))
+      draw_gauge(dx + dw * 1+6, line_height * 5.1 + dy, dw, param_ratio(@actor,5),  param_gauge1(5),  param_gauge2(5))
+      draw_gauge(dx + dw * 2+12, line_height * 5.1 + dy, dw, param_ratio(@actor,7),  param_gauge1(7),  param_gauge2(7))
+    end
+  end 
+  #--------------------------------------------------------------------------
+  # * Draw EXP Gauge
+  #--------------------------------------------------------------------------
+  def draw_exp_gauge(x, y, width = 124)
+    draw_gauge(x, y, width, exp_rate(@actor), exp_gauge1, exp_gauge2)
+  end
+  #--------------------------------------------------------------------------
+  # * Draw TP
+  #--------------------------------------------------------------------------
+  def draw_actor_tp(actor, x, y, width = 124)
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = Rect.new(x+1, y+1, width-2, line_height-2)
+    contents.fill_rect(rect, colour)
+    change_color(system_color)
+    draw_text(x+4, y, width-8, line_height, Vocab::tp)
+    change_color(normal_color)
+    draw_text(x+4, y, width-8, line_height, actor.tp.to_i, 2)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_exp
+  #--------------------------------------------------------------------------
+  def draw_actor_exp(dx, dy, dw)
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = Rect.new(dx + 1, dy + 1, dw - 2, line_height - 2)
+    contents.fill_rect(rect, colour)
+    change_color(system_color)
+    draw_text(dx + 4, dy, dw - 8, line_height, "#{Vocab.exp} needed")
+    s2 = @actor.max_level? ? "-------" : @actor.next_level_exp - @actor.exp
+    change_color(normal_color)
+    draw_text(dx + 4, dy, dw - 8, line_height, s2, 2)
+  end  
+  #--------------------------------------------------------------------------
+  # * overwrite: draw_parameter_graph
+  #--------------------------------------------------------------------------
+  def draw_parameter_graph
+    draw_parameter_title
+    type = BM::STATUS::INFO_STYLE[:param]
+    draw_actor_chart_and_numbers(0, line_height * 3 / 2, :param, :both, type)
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite: draw_parameter_title
+  #--------------------------------------------------------------------------
+  def draw_parameter_title
+    contents.font.bold = true
+    change_color(system_color)
+    text = YEA::STATUS::PARAMETERS_VOCAB
+    draw_text(0, 0, contents.width, line_height, text, 1)
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_bmproper_title
+  #--------------------------------------------------------------------------
+  def draw_bmproper_title
+    contents.font.bold = true
+    change_color(system_color)
+    text = "Attributes"
+    draw_text(0, 0, contents.width, line_height, text, 1)
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_bmproper
+  #--------------------------------------------------------------------------
+  def draw_bmprop
+    draw_bmproper_title
+    contents.font.size = YEA::STATUS::PROPERTIES_FONT_SIZE
+    draw_bmproper_column
+    reset_font_settings
+  end  
+  #--------------------------------------------------------------------------
+  # * new method: draw_bmproper_column
+  #--------------------------------------------------------------------------
+  def draw_bmproper_column
+    dx = 0
+    dw = (contents.width-dx*2) / BM::STATUS::NUM_COL - 6
+    dy = line_height * 3 / 2
+    size = BM::STATUS::BMPROPERTIES_COLUMN.size
+    max_size = contents.height - line_height * 3 / 2
+    col = (size / BM::STATUS::NUM_COL * line_height) + dy - line_height
+    for property in BM::STATUS::BMPROPERTIES_COLUMN
+      dy = draw_property(property, dx, dy, dw)
+      if dy > [col, max_size].min
+        dy = line_height * 3 / 2
+        dx += dw + 6
+      end
+      if dx > contents.width - dw; return; end
+    end
+  end
+  #--------------------------------------------------------------------------
+  # overwrite: draw_properties_column1
+  #--------------------------------------------------------------------------
+  def draw_properties_column1
+    dx = 24
+    dw = (contents.width - 24) / 3 - 24
+    dy = 0
+    for property in YEA::STATUS::PROPERTIES_COLUMN1
+      dy = draw_property(property[0], dx, dy, dw)
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # overwrite: draw_properties_column2
+  #--------------------------------------------------------------------------
+  def draw_properties_column2
+    dx = 24 + (contents.width - 24) / 3
+    dw = (contents.width - 24) / 3 - 24
+    dy = 0
+    for property in YEA::STATUS::PROPERTIES_COLUMN2
+      dy = draw_property(property[0], dx, dy, dw)
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # overwrite: draw_properties_column3
+  #--------------------------------------------------------------------------
+  def draw_properties_column3
+    dx = 24 + (contents.width - 24) / 3 * 2
+    dw = (contents.width - 24) / 3 - 24
+    dy = 0
+    for property in YEA::STATUS::PROPERTIES_COLUMN3
+      dy = draw_property(property[0], dx, dy, dw)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: draw_property
+  #--------------------------------------------------------------------------
+  def draw_property(property, dx, dy, dw)
+    case property
+    #---
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      text1 = Vocab.xparam_a(property)
+      text2 = Vocab.xparam_f(property)
+      value = eval("@actor.#{property}")
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      text1 = Vocab.sparam_a(property)
+      text2 = Vocab.sparam_f(property)
+      value = eval("@actor.#{property}")
+    when :gut
+      return dy unless $imported["BubsGuts"]
+      text1 = Vocab.cparam_a(property)
+      text2 = Vocab.cparam_f(property)
+      value = eval("@actor.#{property}/@actor.#{property}_max")
+    when :hcr, :tcr_y, :gcr
+      return dy unless $imported["YEA-SkillCostManager"]
+      text1 = Vocab.cparam_a(property)
+      text2 = Vocab.cparam_f(property)
+      value = eval("@actor.#{property}")
+    when :cdr, :wur
+      return dy unless $imported["YEA-SkillRestrictions"]
+      text1 = Vocab.cparam_a(property)
+      text2 = Vocab.cparam_f(property)
+      value = eval("@actor.#{property}")
+    when :hp_physical, :mp_physical, :hp_magical, :mp_magical
+      return dy unless $imported["YEA-ConvertDamage"]
+      text1 = Vocab.cparam_a(property)
+      text2 = Vocab.cparam_f(property)
+      value = @actor.convert_dmg_rate(property)
+    #---
+    when :blank; return dy + line_height
+    when :hblank; return dy + line_height/2
+    else; return dy
+    end  
+    value = sprintf("%1.1f%%", value * 100) if value != nil
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = Rect.new(dx+1, dy+1, dw-2, line_height-2)
+    contents.fill_rect(rect, colour)
+    change_color(system_color)
+    cw = text_size("100.0%").width
+    if BM::STATUS::PROPERTIES_FULL_NAME
+      draw_text(dx, dy, dw-cw, line_height, text2, 0)
+    else
+      draw_text(dx, dy, dw-cw, line_height, text1, 0)
+    end
+    change_color(normal_color)
+    draw_text(dx + 4, dy, dw - 8, line_height, value, 2)
+    return dy + line_height
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_nickname
+  #--------------------------------------------------------------------------
+  def draw_actor_nickname
+    contents.font.bold = true
+    fmt = YEA::STATUS::BIOGRAPHY_NICKNAME_TEXT
+    text = sprintf(fmt, @actor.name, @actor.nickname)
+    contents.font.size = YEA::STATUS::BIOGRAPHY_NICKNAME_SIZE
+    draw_text(0, 0, contents.width, line_height*2, text, 1)
+  end
+  #--------------------------------------------------------------------------
+  # draw_actor_yeabiography
+  #--------------------------------------------------------------------------
+  def draw_actor_yeabiography    
+    draw_actor_nickname
+    reset_font_settings
+    x = 24;y = line_height * 2
+    if BM::STATUS::YEA_BIO_BOX
+      colour = Color.new(0, 0, 0, translucent_alpha/2)
+      rect = Rect.new(x, y, contents.width-x*2, contents.height-y - line_height)
+      contents.fill_rect(rect, colour)
+    end
+    draw_text_ex(x, y, @actor.description)
+  end
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_bmbiography
+  #--------------------------------------------------------------------------
+  def draw_actor_bmbiography
+    draw_actor_nickname
+    reset_font_settings
+    y = line_height * 1
+    contents.font.size = BM::STATUS::BIO_FONT_SIZE
+    bio_info_list = BM::STATUS::BIO_INFO
+    bio_info_list = BM::STATUS::ACTOR_BIO_INFO[@actor.id] if BM::STATUS::ACTOR_BIO_INFO.include?(@actor.id)
+    for id in bio_info_list
+      y = draw_actor_bio_info(id, 260, y, contents.width-272)
+      break if y + line_height > contents.height
+    end
+    reset_font_settings
+  end 
+  #--------------------------------------------------------------------------
+  # * new method: draw_actor_bio_info
+  #--------------------------------------------------------------------------
+  def draw_actor_bio_info(id, x, y, width = 100)
+    case id
+    when :blank; return y + line_height
+    when :hblank; return dy + line_height/2
+    when :align
+      return y unless $imported[:bm_align]
+      text1 = BM::STATUS::BIO_INFO_TEXT[id]
+      text2 = eval("@actor.#{id}_name")
+    when :age, :birthplace, :height, :nickname
+      text1 = BM::STATUS::BIO_INFO_TEXT[id]
+      text2 = eval("@actor.#{id}")
+    when :gender
+      return y unless $imported["BubsGenderFunctions"]
+      text1 = BM::STATUS::BIO_INFO_TEXT[id]
+      text2 = eval("@actor.#{id}")
+    else
+      return y unless BM::STATUS::CBIO_INFO_TEXT.include?(id)
+      text1 = BM::STATUS::CBIO_INFO_TEXT[id]
+      text2 = eval("@actor.#{id}")
+    end
+    cw = text_size(text1).width  
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = Rect.new(x-2, y-1, width+4, line_height-2)
+    contents.fill_rect(rect, colour)
+    change_color(system_color)
+    draw_text(x, y, width, line_height, text1)
+    change_color(normal_color)
+    draw_text(x + cw, y, width-cw, line_height, text2, 2)
+    return y + line_height
+  end    
+end
+#==============================================================================
+# ** Scene_Status
+#==============================================================================
+class Scene_Status < Scene_MenuBase
+  #--------------------------------------------------------------------------
+  # alias: start
+  #--------------------------------------------------------------------------
+  alias :bm_status_s :start
+  def start
+    bm_status_s
+    bm_win_opacity
+  end
+  #--------------------------------------------------------------------------
+  def bm_win_opacity
+    @command_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @command_window.nil?
+    @help_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @help_window.nil?
+    @item_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @item_window.nil?
+    @status_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @status_window.nil?
+  end
+  #--------------------------------------------------------------------------
+  # * Create Background Image
+  #--------------------------------------------------------------------------
+  alias :bm_status_cb :create_background
+  def create_background
+    return bm_status_cb unless custom_bg? && !$imported[:bm_menustatus] 
+    custom_background
+  end
+  #--------------------------------------------------------------------------
+  def custom_bg?
+    return false if BM::STATUS::BG_OPTIONS[:bg_image] == "" 
+    return false unless BM::STATUS::BG_OPTIONS[:show_bg_img]
+    return true
+  end
+  #--------------------------------------------------------------------------
+  def custom_background
+    @background_sprite = Plane.new
+    @background_sprite.bitmap = Cache.system(BM::STATUS::BG_OPTIONS[:bg_image])
+    @background_sprite.opacity = BM::STATUS::BG_OPTIONS[:bg_opacity]
+  end
+  #--------------------------------------------------------------------------
+  def update_background
+    return if BM::STATUS::BG_OPTIONS[:bg_scroll_x] == 0 && BM::STATUS::BG_OPTIONS[:bg_scroll_y] == 0
+    @background_sprite.ox += BM::STATUS::BG_OPTIONS[:bg_scroll_x]
+    @background_sprite.oy += BM::STATUS::BG_OPTIONS[:bg_scroll_y]
+  end
+  #--------------------------------------------------------------------------
+  # alias: update
+  #--------------------------------------------------------------------------
+  alias :bm_status_up :update
+  def update
+    bm_status_up    
+    update_background if custom_bg? && !$imported[:bm_menustatus] 
+    if Input.trigger?(BM::STATUS::TOGGLE_BUTTON)
+      if BM::STATUS::TOGGLE_WINDOWS.include?(@command_window.current_symbol)
+        command_toggle(@command_window.current_symbol)
+      end
+    end
+  end
+  #--------------------------------------------------------------------------
+  # new method: command_toggle
+  #--------------------------------------------------------------------------
+  def command_toggle(symbol)
+    Sound.play_ok if BM::STATUS::TOGGLE_SOUND
+    @item_window.new_page(symbol)
+    @command_window.activate
+    return
+  end  
+  #--------------------------------------------------------------------------
+  # overwrite: process_custom_status_commands
+  #--------------------------------------------------------------------------  
+  def process_custom_status_commands
+    for command in YEA::STATUS::COMMANDS
+      if BM::STATUS::TOGGLE_WINDOWS.include?(command)
+      end
+    end    
+    for command in YEA::STATUS::COMMANDS
+      next unless YEA::STATUS::CUSTOM_STATUS_COMMANDS.include?(command[0])
+      called_method = YEA::STATUS::CUSTOM_STATUS_COMMANDS[command[0]][2]
+      called_method = nil if called_method == :do_nothing  
+      unless called_method == nil      
+        @command_window.set_handler(command[0], method(called_method))
+      end
+    end
+  end  
+  #--------------------------------------------------------------------------
+  # new method: command_states
+  #--------------------------------------------------------------------------
+  def command_states
+    SceneManager.call(Scene_StatusStates)
+  end
+  #--------------------------------------------------------------------------
+  # new method: command_resist
+  #--------------------------------------------------------------------------
+  def command_resist
+    SceneManager.call(Scene_StatusResist)
+  end
+  #--------------------------------------------------------------------------
+  # new method: command_inflict
+  #--------------------------------------------------------------------------
+  def command_inflict
+    SceneManager.call(Scene_StatusInflict)
+  end
+  #--------------------------------------------------------------------------
+  # new method: command_elements
+  #--------------------------------------------------------------------------
+  def command_elements
+    SceneManager.call(Scene_StatusElements)
+  end
+  #--------------------------------------------------------------------------
+  # relocate_windows
+  #--------------------------------------------------------------------------
+  alias :bm_status_rw :relocate_windows
+  def relocate_windows
+    return unless $imported["YEA-AceMenuEngine"]
+    bm_status_rw
+    @item_window.refresh
+  end
+end
+#==============================================================================
+# ** Window_StatesElements
+#==============================================================================
+class Window_StatesElements < Window_Selectable
+  include BMCHART 
+  #--------------------------------------------------------------------------
+  # initialize
+  #--------------------------------------------------------------------------
+  def initialize(actor, x, y, chart)
+    @page = {}
+    if BM::STATUS::ONE_PAGE[chart]
+      @page[chart] = -1
+    else
+      @page[chart] = 0
+    end
+    super(x, y, Graphics.width, Graphics.height-y)    
+    @actor = actor
+    @chart = chart
+    @page_index = 0
+    refresh
+    activate
+  end
+  #--------------------------------------------------------------------------
+  def current_page  
+    if @page[@chart] == nil
+      @page[@chart] = 0
+    end
+    return @page[@chart]
+  end
+  #--------------------------------------------------------------------------
+  def new_page(symbol)
+    if current_page >= 0 && current_page < BM::STATUS::TOGGLE_WINDOWS[@chart].size-1
+      @page[symbol] += 1
+    elsif current_page == BM::STATUS::TOGGLE_WINDOWS[@chart].size-1
+      @page[symbol] = 0
+    end
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  # actor=
+  #--------------------------------------------------------------------------
+  def actor=(actor)
+    return if @actor == actor
+    @actor = actor
+    refresh
+  end
+  #--------------------------------------------------------------------------
+  # refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    contents.clear
+    reset_font_settings
+    return unless @actor
+    draw_window_contents
+  end
+  #--------------------------------------------------------------------------
+  def draw_window_contents
+    chart_starter_visibility
+    draw_custom
+    if !BM::STATUS::ONE_PAGE[@chart]
+      dx = contents.width - 24; dy = contents.height - 24
+      draw_icon(BM::STATUS::TOGGLE_ICON, dx, dy)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # draw_toggle_custom
+  #--------------------------------------------------------------------------
+  def draw_custom
+    if BM::STATUS::TOGGLE_WINDOWS.include?(@chart) && !BM::STATUS::ONE_PAGE[@chart]
+      current_symbol = BM::STATUS::TOGGLE_WINDOWS[@chart][current_page]
+    else
+      current_symbol = @chart
+    end
+    return unless YEA::STATUS::CUSTOM_STATUS_COMMANDS.include?(current_symbol)
+    method(YEA::STATUS::CUSTOM_STATUS_COMMANDS[current_symbol][3]).call
+  end
+  #--------------------------------------------------------------------------
+  # alias: update
+  #--------------------------------------------------------------------------
+  alias :bm_status_up :update
+  def update
+    bm_status_up
+    if Input.trigger?(BM::STATUS::TOGGLE_BUTTON)
+      new_page(@chart)
+    end
+  end
+end
+#==============================================================================
+# ** Scene_PolyVisual
+#==============================================================================
+class Scene_PolyVisual < Scene_MenuBase
+  #--------------------------------------------------------------------------
+  # * Start Processing
+  #--------------------------------------------------------------------------
+  def start
+    super
+    create_status_window
+    create_info_window
+    bm_win_opacity
+  end
+  #--------------------------------------------------------------------------
+  def bm_win_opacity
+    @info_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @info_window.nil?
+    @status_window.opacity = BM::STATUS::BG_OPTIONS[:win_opacity] unless @status_window.nil?
+  end
+  #--------------------------------------------------------------------------
+  # * Create Background Image
+  #--------------------------------------------------------------------------
+  unless method_defined?(:bm_menu_cb)
+    alias :bm_menu_cb :create_background
+  end 
+  def create_background
+    return bm_menu_cb unless custom_bg?
+    custom_background
+  end
+  #--------------------------------------------------------------------------
+  def custom_bg?
+    return false if BM::STATUS::BG_OPTIONS[:bg_image] == "" 
+    return false unless BM::STATUS::BG_OPTIONS[:show_bg_img]
+    return true
+  end
+  #--------------------------------------------------------------------------
+  def custom_background
+    @background_sprite = Plane.new
+    @background_sprite.bitmap = Cache.system(BM::STATUS::BG_OPTIONS[:bg_image])
+    @background_sprite.opacity = BM::STATUS::BG_OPTIONS[:bg_opacity]
+  end
+  #--------------------------------------------------------------------------
+  def update_background
+    return if BM::STATUS::BG_OPTIONS[:bg_scroll_x] == 0 && BM::STATUS::BG_OPTIONS[:bg_scroll_y] == 0
+    @background_sprite.ox += BM::STATUS::BG_OPTIONS[:bg_scroll_x]
+    @background_sprite.oy += BM::STATUS::BG_OPTIONS[:bg_scroll_y]
+  end
+  #--------------------------------------------------------------------------
+  # * Update_Background_Image
+  #--------------------------------------------------------------------------
+  unless method_defined?(:bm_menu_u)
+    alias :bm_menu_u :update
+  end 
+  def update
+    bm_menu_u
+    update_background if custom_bg?
+  end
+  #--------------------------------------------------------------------------
+  def type
+    return :state
+  end
+  #--------------------------------------------------------------------------
+  # * create_states_window
+  #--------------------------------------------------------------------------
+  def create_info_window
+    wy = @status_window.height
+    @info_window = Window_StatesElements.new(@actor,0,wy,type)
+    @info_window.set_handler(:cancel,   method(:return_scene))
+    @info_window.set_handler(:pagedown, method(:next_actor))
+    @info_window.set_handler(:pageup,   method(:prev_actor))
+  end
+  #--------------------------------------------------------------------------
+  # * Change Actors
+  #--------------------------------------------------------------------------
+  def on_actor_change
+    @info_window.actor = @actor
+    @status_window.actor = @actor
+    @info_window.activate
+  end
+  #--------------------------------------------------------------------------
+  # * Create Status Window
+  #--------------------------------------------------------------------------
+  def create_status_window
+    @status_window = Window_SkillStatus.new(0, 0)
+    @status_window.width = Graphics.width
+    @status_window.viewport = @viewport
+    @status_window.actor = @actor
+  end
+end
+#==============================================================================
+# ** Scene_StatusElements
+#==============================================================================
+class Scene_StatusElements < Scene_PolyVisual
+  #--------------------------------------------------------------------------
+  def type
+    return :element
+  end
+end
+#==============================================================================
+# ** Scene_StatusStates
+#==============================================================================
+class Scene_StatusStates < Scene_PolyVisual
+  #--------------------------------------------------------------------------
+  def type
+    return :state
+  end
+end
+#==============================================================================
+# ** Scene_StatusResist
+#==============================================================================
+class Scene_StatusResist < Scene_PolyVisual
+  #--------------------------------------------------------------------------
+  def type
+    return :resistance
+  end
+end
+#==============================================================================
+# ** Scene_StatusInflict
+#==============================================================================
+class Scene_StatusInflict < Scene_PolyVisual
+  #--------------------------------------------------------------------------
+  def type
+    return :infliction
+  end
+end
+
+
+if !YEA::STATUS::CUSTOM_STATUS_COMMANDS.include?(:resistances)
+  YEA::STATUS::CUSTOM_STATUS_COMMANDS.merge!(BM::STATUS::CHART_STATUS_COMMANDS)
+end
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================

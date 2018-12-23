@@ -1,0 +1,192 @@
+#==============================================================================
+# ** Blackmorning -> Basic Equip 
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.02
+#  updated 03/06/2014
+#==============================================================================
+#  - INTRODUCTION -
+# - adds comparison icon when changing equipment
+# - optimize when press CRTL
+# - remove all equipment when press ALT
+# - show parameters, xparameters, sparameters 
+#==============================================================================
+# ¨‹ Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base but above Main. 
+# Remember to save.
+#==============================================================================
+module BM
+  module EQUIP
+    MINI_FONT_SIZE = 16 # for added value in equipment
+    # can reorder/include parameters, xparameters, sparameters 
+    # (limited to 6 spaces)
+    PARAM_SHOWN = [:atk, :mat, :def, :mdf, :agi, :hit]
+  end
+end
+#==============================================================================
+# Editting anything past this point may potentially result in causing computer
+# damage, incontinence, explosion of user's head, coma, death, and/or halitosis.
+# Therefore, edit at your own risk.
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+#==============================================================================
+$imported ||= {}
+$imported[:bm_equip] = 1.02
+BM.required(:bm_equip, :bm_base, 1.00, :above)
+#==============================================================================
+# ** Window_EquipSlot
+#==============================================================================
+class Window_EquipSlot < Window_Selectable
+  #--------------------------------------------------------------------------
+  # * alias: Draw Item
+  #--------------------------------------------------------------------------
+  alias :bm_equip_di :draw_item
+  def draw_item(index)
+    return unless @actor
+    colour = Color.new(0, 0, 0, translucent_alpha/2)
+    rect = item_rect_for_text(index)
+    rect.x += 92;  rect.width -= 92
+    rect.y += 1; rect.height -= 2
+    contents.fill_rect(rect, colour)
+    bm_equip_di(index)
+  end
+end
+#==============================================================================
+# ** Window_equipstatus
+#==============================================================================
+class Window_EquipStatus < Window_Base
+  #--------------------------------------------------------------------------
+  # overwrite method: refresh
+  #--------------------------------------------------------------------------
+  def refresh
+    contents.clear
+    draw_actor_name(@actor, 4, 0) if @actor
+    i = 0
+    for param_id in BM::EQUIP::PARAM_SHOWN
+      case param_id
+        when :atk then param_id = 2
+        when :def then param_id = 3
+        when :mat then param_id = 4
+        when :mdf then param_id = 5
+        when :agi then param_id = 6
+        when :luk then param_id = 7
+      end
+      draw_item(0, line_height * (1 + i), param_id)
+      i += 1
+    end
+  end
+  #--------------------------------------------------------------------------
+  # overwrite method: draw_item
+  #--------------------------------------------------------------------------
+  def draw_item(dx, dy, param_id)
+    change_color(system_color)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      text = Vocab::param(param_id)
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      text = Vocab::xparam_a(param_id)
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      text = Vocab::sparam_a(param_id)
+    end
+    draw_text(dx + 4, dy, contents.width, line_height, text)
+    drx = (contents.width + 22) / 2
+    draw_right_arrow(drx, dy)
+    draw_current_param(dx + 4, dy, param_id) if @actor    
+    draw_new_param(drx + 22, dy, param_id) if @temp_actor
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: draw_current_param
+  #--------------------------------------------------------------------------
+  def draw_current_param(dx, dy, param_id)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      text = @actor.param(param_id).group
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      value = eval("@actor.#{param_id}")
+      text = sprintf("%d%", value * 100)
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      value = eval("@actor.#{param_id}")
+      text = sprintf("%d%", value * 100)
+    end 
+    change_color(normal_color)
+    dw = (contents.width + 22) / 2
+    draw_text(0, dy, dw, line_height, text, 2)
+    reset_font_settings
+  end
+  #--------------------------------------------------------------------------
+  # * overwrite method: draw_new_param
+  #--------------------------------------------------------------------------
+  def draw_new_param(dx, dy, param_id)
+    case param_id
+    when 0,1,2,3,4,5,6,7
+      actor_value = @actor.param(param_id)
+      temp_value = @temp_actor.param(param_id)
+      text = temp_value.group
+    when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+      actor_value = eval("@actor.#{param_id}")
+      temp_value = eval("@temp_actor.#{param_id}")
+      text = sprintf("%d%%", temp_value * 100)
+    when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+      actor_value = eval("@actor.#{param_id}")
+      temp_value = eval("@actor.#{param_id}")
+      text = sprintf("%d%%", temp_value * 100)
+    end 
+    new_value = text
+    change = temp_value - actor_value
+    change_color(param_change_color(change))
+    draw_text(0, dy, contents.width-4, line_height, text, 2)
+    contents.font.size = BM::EQUIP::MINI_FONT_SIZE
+    if change != 0
+      value = change
+      case param_id  
+      when :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+        value = sprintf("%d%%", value * 100)
+      when :tgr, :grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+        value = sprintf("%d%%", value * 100)
+      end
+      value = "+#{value}" if change > 0
+      draw_text(dx, dy, 92, 14, value)
+    end
+    w = contents.text_size(value).width
+    reset_font_settings
+    draw_icon(Icon.param_compare(change), contents.width-w-12, dy) if $imported[:bm_icon]    
+  end  
+end 
+#==============================================================================#
+# ** Scene_Equip
+#==============================================================================#
+class Scene_Equip < Scene_MenuBase
+  #--------------------------------------------------------------------------
+  # * Alias: Update
+  #--------------------------------------------------------------------------
+  alias :bm_equip_up :update
+  def update
+    bm_equip_up
+    command_optimize if Input.trigger?(:CTRL)
+    command_clear if Input.trigger?(:ALT)
+  end
+end

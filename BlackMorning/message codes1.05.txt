@@ -1,0 +1,733 @@
+#==============================================================================
+# ** Blackmorning -> Message Codes (modded from ATS)
+#------------------------------------------------------------------------------
+#  Blackmorning
+#  Version 1.05
+#  released 01/29/2014
+#  updated 03/21/2014
+#==============================================================================
+# �� Introduction
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# - write out different terms using codes in messages
+# - write text based on switches
+# - shows busts instead of specified faceset (switch on/off) 
+#     - busts found in Graphics/Portraits
+#     - filename format: face_name-face_index
+# - add text sounds and animations during messages
+# - add animations over characters during messages
+# - add balloons over characters during messages
+#==============================================================================
+# �� Instructions
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# To install this script, open up your script editor and copy/paste this script
+# to an open slot below BM - Base and other message scripts but above �� Main. 
+# Remember to save.
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# Message Window codes - These go inside of your message window.
+# -----------------------------------------------------------------------------
+#  Names:      Effect:
+# \nmp       - Write name of the map the player is currently on.
+# \nmp[n]    - Write name of the map with ID n.
+# \nev[n]    - Write name of the event with ID n on the current map.
+# \nem[n]    - Write name of the enemy with ID n.
+# \ntr[n]    - Write name of the troop with ID n.
+# \nvr[n]    - Write name of the variable with ID n.
+# \nsw[n]    - Write name of the switch with ID n.
+# \nel[n]    - Write name of the element with ID n.
+# \nwt[n]    - Write name of the weapon type with ID n.
+# \nat[n]    - Write name of the armor type with ID n.
+# \nst[n]    - Write name of the skill type with ID n.
+# \npr[n]    - Write name of the parameter with ID n.
+#              or :hp, :mp, :atk, :def, :mat, :mdf, :agi, :luk
+# \nxp[n]    - Write name of the extra parameter with ID n.
+#              or :hit, :eva, :cri, :cev, :mev, :mrf, :cnt, :hrg, :mrg, :trg
+# \nsp[n]    - Write name of the special parameter with ID n.
+#              or :tgr, ::grd, :rec, :pha, :mcr, :tcr, :pdr, :mdr, :fdr, :exr
+# \npg       - Write amount of money the party has.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# \apr[n, x] - Write value of the parameter with ID n for actor x.
+# \axp[n, x] - Write value of the extra parameter with ID n for actor x.
+# \asp[n, x] - Write value of the special parameter with ID n for actor x.
+#              *Note: If x is 0 or negative, it will show the respective
+#               party member's instead.
+#                   0 - Party Leader
+#                  -1 - 1st non-leader member.
+#                  -2 - 2nd non-leader member. So on.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# \vocab[method] - Write whatever Vocab.method returns, if it is a valid
+#                  method call. 
+# \vocab[param, n] - Will draw the label for parameter with ID n. 0 => Max HP;
+#                    1 => Max MP; 2 => Attack; 3 => Defence; 4 => Magic; 
+#                    5 => Magic Defence; 6 => Agility; 7 => Luck
+# \vocab[etype, n] - Will draw the label for equipment type with ID n.
+#                    0 => Weapon; 1 => Shield; 2 => Head; 3 => Body; 
+#                    4 => Accessory
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Icon Names: Effect: 
+# (need BM - Icon module to draw icons, otherwise just the word appears)
+# \icl[n] - Writes out class n's name including icon. 
+# \iel[n] - Writes out element n's name including icon.
+# \ip[n]  - Writes out parameter n's name including icon.
+# \iwt[n] - Writes out weapon type n's name including icon.
+# \iat[n] - Writes out armor type n's name including icon.
+# \ist[n] - Writes out skill type n's name including icon.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# \#{code}    - This will evaluate code.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# \s{n,text}  - Write text if the switch with ID n is ON.
+# \s!{n,text} - Write text if the switch with ID n is OFF.
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  Sound Effects:
+# \lse - Turns the letter by letter SE on.
+# /lse - Turns the letter by letter SE off.
+# \pse - Turns the pause SE on.
+# /pse - Turns the pause SE off.
+# \fse - Turns the finish SE on.
+# /fse - Turns the finish SE off.
+# \tse - Turns the terminate SE on.
+# /tse - Turns the terminate SE off.
+# \pSE[file,x,y] - Play the "file" SE at volume x and pitch y
+# \pME[file,x,y] - Play the "file" ME at volume x and pitch y
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  Other Effects:
+# \pANIM[x,n] - Play the animation with ID n over character x
+# \pBLN[x,n]  - Play the balloon with ID n over character x
+#==============================================================================
+module BM
+  module MESSAGE
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Text Sound
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    SOUND_ON     = true        # the sound will be played as letters are drawn
+    # SE = [name, vol, pitch]
+    LETTER_SE    = ["Cursor2"]   # sound as letters are drawn 
+    START_SE     = ["Chime2"]    # sound whenever a message first opens
+    PAUSE_SE     = ["Decision2"] # sound whenever a message pauses & waits for player input
+    FINISH_SE    = ["Chime1"]    # sound whenever a message finishes.
+    TERMINATE_SE = ["Cancel2"]   # sound whenever a message finishes
+    
+    LETTERS_PER_SEC = 4        # amount of letters that are drawn between each sound effect
+    PITCH_RANGE     = 80...100 # (x...y) pitch randomly selected between the x and y
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    # Bust Options
+    #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+    BUST ={
+      :disable_sw => 4,   # Turn swith ON to disable busts and show normal face
+      :z          => -1,
+      # adds to z value of busts if needed. A negative number will make the bust 
+      # appear below the message window. 
+      :y => false,  
+      # true = busts sit at the bottom of the screen
+      # false = busts sit on top of the message window
+      :x => 0,
+      # Offset text when displaying busts above the message window. The script 
+      # automatically offsets the text x by the bust image width IF the BUST_Z 
+      # is 0 or more.
+      :slide => true,# Slide portrait onto the screen instead of fading in.      
+    } # DO NOT REMOVE
+  end
+end
+#==============================================================================
+# �� Editting anything past this point may potentially result in causing
+# computer damage, incontinence, explosion of user's head, coma, death, and/or
+# halitosis so edit at your own risk.
+#==============================================================================
+module BM
+  def self.required(name, req, version, type = nil)
+    if !$imported[:bm_base]
+      msg = "The script '%s' requires the script\n"
+      msg += "'BM - Base' v%s or higher above it to work properly\n"
+      msg += "Go to bmscripts.weebly.com to download this script."
+      msgbox(sprintf(msg, self.script_name(name), version))
+      exit
+    else
+      self.required_script(name, req, version, type)
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * script_name
+  #   Get the script name base on the imported value
+  #--------------------------------------------------------------------------
+  def self.script_name(name, ext = "BM")
+    name = name.to_s.gsub("_", " ").upcase.split
+    name.collect! {|char| char == ext ? "#{char} -" : char.capitalize }
+    name.join(" ")
+  end
+end
+$imported ||= {}
+$imported[:bm_message] = 1.05
+BM.required(:bm_message, :bm_base, 1.00, :above)
+#============================================================================
+# ** BM_MESSAGE
+#============================================================================
+class BM_MESSAGE
+    CONFIG ||= {}
+    CONFIG[:bm_message] = {
+    bm_message: true,
+    letter_sound_on:     BM::MESSAGE::SOUND_ON,
+    letter_se:           BM::MESSAGE::LETTER_SE, 
+    occurence:           BM::MESSAGE::LETTERS_PER_SEC,
+    random_pitch:        BM::MESSAGE::PITCH_RANGE,
+    #  :start_sound_on - when this is true, the sound specified at :start_se
+    # will play whenever a message first opens.
+    start_sound_on:        false,
+    start_se:            BM::MESSAGE::START_SE, 
+    #  :pause_sound_on - when this is true, the sound specified at :pause_se is
+    # played whenever a message pauses and waits for player input.
+    pause_sound_on:        false,
+    pause_se:            BM::MESSAGE::PAUSE_SE, 
+    #  :finish_sound_on - when this is true, the sound specified at :finish_se
+    # is played whenever a message finishes.
+    finish_sound_on:       false,
+    finish_se:           BM::MESSAGE::FINISH_SE, 
+    #  :terminate_sound_on - when this is true, the sound specified at 
+    # :terminate_se is played whenever a message finishes.
+    terminate_sound_on:    false,
+    terminate_se:        BM::MESSAGE::TERMINATE_SE, 
+  }
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Public Instance Variables
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  CONFIG[:bm_message].keys.each { |key| attr_accessor key }
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * SE methods 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  [:letter_se, :start_se, :pause_se, :finish_se, :terminate_se].each { |method_name|
+    define_method(:"#{method_name}=") do |*args|
+      instance_variable_set(:"@#{method_name}", BM_MESSAGE.set_sound_effect(*args))
+    end
+  }
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Set Sound Effect
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def self.set_sound_effect(settings)
+    return settings if settings.is_a?(RPG::SE)
+    settings = [settings] if settings.is_a?(String)
+    settings[1] = 80 if !settings[1]
+    RPG::SE.new(*settings)
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Set Random Pitch
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def random_pitch=(val)
+    @random_pitch = val.is_a?(Integer) ? letter_se.pitch..(letter_se.pitch + val) : val
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Initialize
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def initialize; reset; end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Reset any or all installed ATS scripts
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def reset(script_name = nil)
+    if script_name.is_a? (Symbol) # If script to reset specified
+      CONFIG[script_name].each_pair { |key, value| 
+        self.send("#{key}=".to_sym, value) 
+        $game_message.send("#{key}=".to_sym, value)
+      }
+    else                          # Reset all ATS scripts
+      CONFIG.keys.each { |script| reset(script) }
+    end
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Initialize any newly installed ATS scripts
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def init_new_installs
+    CONFIG.keys.each { |script| reset(script) unless self.send(script) }
+  end
+end
+#============================================================================
+# ** DataManager
+#============================================================================
+module DataManager
+  class << self
+    alias :bm_message_cgo :create_game_objects
+    alias :bm_message_msc :make_save_contents
+    alias :bm_message_esc :extract_save_contents
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Create Game Objects
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def self.create_game_objects(*args, &block)
+    bm_message_cgo(*args, &block)
+    $bm_message = BM_MESSAGE.new
+    $bm_message.init_new_installs
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Make Save Contents
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def self.make_save_contents(*args, &block)
+    contents = bm_message_msc(*args, &block)
+    contents[:bm] = $bm_message
+    contents
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Extract Save Contents
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def self.extract_save_contents(contents, *args, &block)
+    bm_message_esc(contents, *args, &block)
+    $bm_message = contents[:bm] ? contents[:bm] : BM_MESSAGE.new
+    $bm_message.init_new_installs
+  end
+end
+#==============================================================================
+# ** Game_Interpreter
+#==============================================================================
+class Game_Interpreter
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * New method: bust_mirror
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def bust_mirror(state)
+    $game_message.mirror = state
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: command_101
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_101 :command_101
+  def command_101
+    $game_message.bust_name = @params[0]
+    $game_message.bust_index = @params[1]
+    bm_message_101
+  end
+end
+#==============================================================================
+# ** Game_Message
+#==============================================================================
+class Game_Message   
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Public Instance Variables
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  attr_accessor :bust_name
+  attr_accessor :bust_index
+  attr_accessor :mirror
+  BM_MESSAGE::CONFIG[:bm_message].keys.each { |key| attr_accessor key }
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Initialize
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_init :initialize
+  def initialize
+    bm_message_init
+    @mirror = false
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Clear
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_clear :clear
+  def clear(*args, &block)
+    @bust_name = ""
+    @bust_index = 0
+    tso = @terminate_sound_on # Don't reset terminate sound
+    bm_message_clear(*args, &block) # Call Original Method
+    return if !$bm_message
+    BM_MESSAGE::CONFIG.values.each { |installed|
+      installed.keys.each { |key| self.send("#{key}=".to_sym, $bm_message.send(key)) }
+    }
+    @terminate_sound_on = tso unless tso.nil?
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * New method: SE Definitions
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  [:letter, :start, :pause, :finish, :terminate].each { |method_name|
+    define_method(:"#{method_name}_se=") do |*args|
+      instance_variable_set(:"@#{method_name}_se", BM_MESSAGE.set_sound_effect(*args))
+    end
+  }
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * New method: Play Sound?
+  #    type : :letter, :start, :pause, :finish, or :terminate
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def play_sound?(type)
+    return instance_variable_get(:"@#{type}_sound_on") && 
+      !instance_variable_get(:"@#{type}_se").nil?
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * New method: Set Random Pitch
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def random_pitch=(val)
+    @random_pitch = val.is_a?(Integer) ? letter_se.pitch..(letter_se.pitch + val) : val
+  end
+end  
+#==============================================================================
+# ** Window_Message
+#==============================================================================
+class Window_Message < Window_Base
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Object Initialization
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_init :initialize
+  def initialize(*args, &block)
+    @char_count = 0
+    bm_message_init(*args, &block) # Call Original Method
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Process All Text
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_pat :process_all_text
+  def process_all_text(*args, &block)
+    # Play Start SE
+    $game_message.start_se.play if $game_message.play_sound?(:start) 
+    bm_message_pat(*args, &block) # Call Original Method
+    # Play Finish SE
+    $game_message.finish_se.play if $game_message.play_sound?(:finish)
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Input Processing
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_pi :process_input
+  def process_input(*args, &block)
+    # Don't play Pause Sound if Finish Sound played
+    $game_message.pause_sound_on = false if $game_message.play_sound?(:finish)
+    bm_message_pi(*args, &block)
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Close Window and Wait for It to Fully Close
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_caw :close_and_wait
+  def close_and_wait(*args, &block)
+    # Play Terminate SE
+    $game_message.terminate_se.play if $game_message.play_sound?(:terminate)
+    $game_message.terminate_sound_on = $bm_message.terminate_sound_on
+    bm_message_caw(*args, &block) # Call Original Method
+  end 
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Process Escape Character
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_pec :process_escape_character
+  def process_escape_character(code, text, *args, &block) # (code, text, pos)
+    case code.upcase
+    when 'ATSMOSE'
+      param = obtain_escape_param(text)
+      case param / 2
+        when 0 then $game_message.letter_sound_on = (param == 0)    # Letter Sound
+        when 1 then $game_message.pause_sound_on = (param == 2)     # Pause Sound
+        when 2 then $game_message.finish_sound_on = (param == 4)    # Finish Sound
+        when 3 then $game_message.terminate_sound_on = (param == 6) # Terminate Sound
+      end
+    when 'PLAYSOUND'
+      return unless text.slice!(/^\[([MS]E),\"(.+?)\",?(\d*),?(\d*)\]/i)
+      RPG.const_get($1.to_sym).new($2, $3.empty? ? 80 : $3.to_i, $4.empty? ? 100 : $4.to_i).play
+    when 'ANIMATION'
+      return unless text.slice!(/^\[(\d+),(\d+),(\d+)\]/)
+      character = atsmo_get_character($2.to_i)
+      if character
+        case $1.to_i
+          when 0 then character.animation_id = $3.to_i 
+          when 1 then character.balloon_id = $3.to_i
+        end
+      end
+    else
+      bm_message_pec(code, text, *args, &block) # Run Original Method
+    end
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Get Character
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def atsmo_get_character(id)
+    id == 0 ? $game_player : $game_map.events[id]
+  end
+  #--------------------------------------------------------------------------
+  # * alias: create_back_bitmap
+  #--------------------------------------------------------------------------
+  alias :bm_message_cbb :create_back_bitmap
+  def create_back_bitmap
+    @bust = Sprite.new if @bust.nil?
+    @bust.visible = true
+    @bust.opacity = 0
+    @bust.z = z + BM::MESSAGE::BUST[:z]
+    bm_message_cbb
+  end
+  #--------------------------------------------------------------------------
+  # * alias: dispose
+  #--------------------------------------------------------------------------  
+  alias :bm_message_dispose :dispose
+  def dispose
+    bm_message_dispose
+    dispose_bust
+  end
+  #--------------------------------------------------------------------------
+  # * new method: dispose_bust
+  #--------------------------------------------------------------------------  
+  def dispose_bust
+    @bust.dispose if !@bust.nil?
+    @bust.bitmap.dispose if !@bust.bitmap.nil?
+  end
+  #--------------------------------------------------------------------------
+  # * alias: update_back_sprite
+  #-------------------------------------------------------------------------- 
+  alias :bm_message_ubs :update_back_sprite
+  def update_back_sprite
+    bm_message_ubs
+    update_bust if openness > 0
+  end
+  #--------------------------------------------------------------------------
+  # * new method: update_bust
+  #-------------------------------------------------------------------------- 
+  def update_bust
+    allow_bust = !$game_switches[BM::MESSAGE::BUST[:disable_sw]]
+    if allow_bust
+      portrait_name = $game_message.bust_name + "-" + ($game_message.bust_index).to_s
+      allow_bust = portrait_exist?(portrait_name)
+    end
+    if allow_bust
+      @bust.mirror = $game_message.mirror
+      @bust.bitmap = Cache.portrait(portrait_name)
+      if !$game_message.mirror
+        if BM::MESSAGE::BUST[:slide]
+          @bust.x = ((openness.to_f / 255) * @bust.width) - @bust.width
+        else
+          @bust.x = 0
+        end
+      else
+        if BM::MESSAGE::BUST[:slide]
+          @bust.x = Graphics.width - ((openness.to_f / 255) * @bust.width)
+        else
+          @bust.x = Graphics.width - @bust.bitmap.width
+        end
+      end
+       
+      if $game_message.position == 2 && !BM::MESSAGE::BUST[:y]
+        @bust.y = Graphics.height - @bust.bitmap.height - self.height
+      else
+        @bust.y = Graphics.height - @bust.bitmap.height
+      end
+      @bust.opacity = openness
+    else
+      @bust.bitmap = nil
+      @bust.opacity = 0
+    end         
+    @bust.update
+  end
+  #--------------------------------------------------------------------------
+  # * alias: new_line_x
+  #-------------------------------------------------------------------------- 
+  alias bm_message_nlx new_line_x
+  def new_line_x
+    allow_bust = !$game_switches[BM::MESSAGE::BUST[:disable_sw]]
+    if allow_bust 
+      portrait_name = $game_message.face_name + "-" + ($game_message.face_index).to_s
+      allow_bust = portrait_exist?(portrait_name)
+    end
+    if !allow_bust
+      return bm_message_nlx
+    else
+      if @bust.z >= self.z && !$game_message.mirror && $game_message.position == 2
+        $game_message.face_name.empty? ? 0 : @bust.bitmap.width + BM::MESSAGE::BUST[:x]
+      else
+        return 0
+      end
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * alias: draw_face
+  #-------------------------------------------------------------------------- 
+  alias :bm_message_df :draw_face
+  def draw_face(face_name, face_index, x, y, enabled = true)
+    allow_bust = !$game_switches[BM::MESSAGE::BUST[:disable_sw]]
+    if allow_bust
+      portrait_name = $game_message.face_name + "-" + ($game_message.face_index).to_s
+      allow_bust = portrait_exist?(portrait_name)
+    end
+    return if allow_bust
+    bm_message_df(face_name, face_index, x, y, enabled)
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Process Normal Character
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_pnc :process_normal_character
+  def process_normal_character(c, pos, *args, &block)
+    bm_message_pnc(c, pos, *args, &block) # Call Original Method
+    # Play SE if not showing fast and the letter sound is on
+    play_letter_by_letter_se if $game_message.play_sound?(:letter) && 
+      !@show_fast && !@line_show_fast
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Input Pause
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  alias :bm_message_ip :input_pause
+  def input_pause(*args, &block)
+    # Play Pause SE
+    $game_message.pause_se.play if $game_message.play_sound?(:pause) # Play
+    bm_message_ip(*args, &block) # Call Original Method
+  end
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # * Alias: Play Letter By Letter SE
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  def play_letter_by_letter_se
+    # If drawn enough letters to play the SE
+    if @char_count >= $game_message.occurence
+      @char_count = 0
+      unless $game_message.random_pitch.first == $game_message.random_pitch.last
+        # Randomize pitch
+        $game_message.letter_se.pitch = $game_message.random_pitch.first + 
+          rand($game_message.random_pitch.last - $game_message.random_pitch.first) 
+      end
+      $game_message.letter_se.play # Play Letter by Letter SE
+    else
+      @char_count += 1 # Advance character count
+    end
+  end
+end
+#==============================================================================
+# ** Window_Base
+#==============================================================================
+class Window_Base < Window  
+  #--------------------------------------------------------------------------
+  # * Alias: convert_escape_characters
+  #--------------------------------------------------------------------------
+  alias :bm_message_cec :convert_escape_characters
+  def convert_escape_characters(text)
+    result = bm_message_cec(text)
+    result = convert_bm_escape_characters(result)
+    return result
+  end  
+  #--------------------------------------------------------------------------
+  # * New method: convert_bm_escape_characters
+  #--------------------------------------------------------------------------
+  def convert_bm_escape_characters(result)
+    # Names
+    result.gsub!(/\eNPG/i)           { $game_party.gold rescue ""}
+    result.gsub!(/\eNMP\[(\d+)\]/i)  { load_data(sprintf("Data/Map%03d.rvdata2", $1.to_i)).display_name rescue "" }
+    result.gsub!(/\eNMP/i)           { $game_map.display_name rescue "" }
+    result.gsub!(/\eNEV\[(\d+)\]/i)  { $game_map.events[$1.to_i].name rescue "" }
+    result.gsub!(/\eNEM\[(\d+)\]/i)  { Vocab.enemies($1.to_i) rescue "" }
+    result.gsub!(/\eNPR\[(\d+)\]/i)  { Vocab.param_a($1.to_i) rescue "" }
+    result.gsub!(/\eNXP\[(\d+)\]/i)  { Vocab.xparam_a($1.to_i) rescue "" }
+    result.gsub!(/\eNSP\[(\d+)\]/i)  { Vocab.sparam_a($1.to_i) rescue "" }
+    result.gsub!(/\eNTR\[(\d+)\]/i)  { $data_troops[$1.to_i].name rescue "" }
+    result.gsub!(/\eNVR\[(\d+)\]/i)  { Vocab.variables($1.to_i) rescue "" }
+    result.gsub!(/\eNSW\[(\d+)\]/i)  { Vocab.switches($1.to_i) rescue "" }
+    result.gsub!(/\eNWT\[(\d+)\]/i)  { Vocab.weapon_types($1.to_i) rescue "" }
+    result.gsub!(/\eNAT\[(\d+)\]/i)  { Vocab.armor_types($1.to_i) rescue "" }
+    result.gsub!(/\eNST\[(\d+)\]/i)  { Vocab.skill_types($1.to_i) rescue "" }
+    result.gsub!(/\eNEL\[(\d+)\]/i)  { Vocab.element($1.to_i) rescue "" }
+    # Parameters
+    result.gsub!(/\eAPR\[([-+]?\d+)\,(\d+)\]/i)  { actor_param($2.to_i, $1.to_i) }
+    result.gsub!(/\eAXP\[([-+]?\d+)\,(\d+)\]/i)  { actor_xparam($2.to_i, $1.to_i) }
+    result.gsub!(/\eASP\[([-+]?\d+)\,(\d+)\]/i)  { actor_sparam($2.to_i, $1.to_i) }
+    # Vocab
+    result.gsub!(/\eVOCAB\[(\w+),\s*(\d+)\s*\]/i) { Vocab.send($1.downcase, $2.to_i) rescue "" }
+    result.gsub!(/\eVOCAB\[(\w+)\]/i) { Vocab.send($1.downcase) rescue "" }
+    # Names and Icons
+    result.gsub!(/\eICL\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :classes) }
+    result.gsub!(/\eIPR\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :param) }
+    result.gsub!(/\eISP\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :sparam) }
+    result.gsub!(/\eIXP\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :xparam) }
+    result.gsub!(/\eIWT\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :weapon_types) }
+    result.gsub!(/\eIAT\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :armor_types)}
+    result.gsub!(/\eIST\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :skill_types)  }
+    result.gsub!(/\eIEL\[(\d+)\]/i) { escape_icon_and_text($1.to_i, :element) }
+    # Conditional Text
+    result.gsub!(/\eS\[(\d+)[,;:](.+?)\]/mi)  { $game_switches[$1.to_i] ? $2 : "" }
+    result.gsub!(/\eS!\[(\d+)[,;:](.+?)\]/mi) { $game_switches[$1.to_i] ? "" : $2 }
+    result.gsub!(/\eS\{(\d+)[,;:](.+?)\}/mi)  { $game_switches[$1.to_i] ? $2 : "" }
+    result.gsub!(/\eS!\{(\d+)[,;:](.+?)\}/mi) { $game_switches[$1.to_i] ? "" : $2 }
+    # Evaluation
+    result.gsub!(/\e#\{(.+?)\}/im)  { (eval($1)).to_s rescue "" }
+    # Sound Effects
+    result.gsub!(/\eP_?([MS]E)\[\s*\"?([^\",\]]+)\"?(.*?)\]/i)   { "\ePLAYSOUND\[#{$1.upcase},\"#{$2}\"#{$3.gsub(/ /, "")}\]" }
+    result.gsub!(/\eP_?(ANIM|BLN)\[\s*(\d+)[\s,:;]*(\d+)\s*\]/i) { "\eANIMATION\[#{$1.upcase == "ANIM" ? 0 : 1},#{$2},#{$3}\]" }
+    letter_ary = ["L", "P", "F", "T"]
+    # Turn Sound Effects on or off
+    result.gsub!(/([\e\/])([LPFT])SE/i) { 
+      num = ($1 == "\e" ? 0 : 1) + (2*letter_ary.index($2.upcase))
+      "\eATSMOSE\[#{num}\]" }
+    # Do resubstitutions if requested
+    if result.sub!(/\eRESUB/i, "") != nil
+      result = convert_escape_characters(result, *args, &block)
+    end
+    return result    
+  end
+  #--------------------------------------------------------------------------
+  # new method: actor_param
+  #--------------------------------------------------------------------------
+  def actor_param(actor_id, param_id)
+    return "" unless param_id <= 7 && param_id >= 0
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    case param_id
+    when 0,:hp,:maxhp; value = actor.mhp
+    when 1,:mp,:maxmp; value = actor.mmp
+    when 2,:atk; value = actor.atk
+    when 3,:def; value = actor.def
+    when 4,:mat; value = actor.mat
+    when 5,:mdf; value = actor.mdf
+    when 6,:agi; value = actor.agi
+    when 7,:luk; value = actor.luk
+    end
+    return value.group
+  end
+  #--------------------------------------------------------------------------
+  # new method: actor_xparam
+  #--------------------------------------------------------------------------
+  def actor_xparam(actor_id, param_id)
+    return "" unless param_id <= 9 && param_id >= 0
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    case param_id
+    when 0,:hit;      value = actor.hit
+    when 1,:eva;      value = actor.eva
+    when 2,:cri;      value = actor.cri
+    when 3,:cev;      value = actor.cev
+    when 4,:mev;      value = actor.mev
+    when 5,:mrf;      value = actor.mrf
+    when 6,:cnt;      value = actor.cnt
+    when 7,:hrg;      value = actor.hrg
+    when 8,:mrg;      value = actor.mrg
+    when 9,:trg;      value = actor.trg 
+    end
+    return sprintf("%d%%", value * 100)
+  end
+  #--------------------------------------------------------------------------
+  # new method: actor_sparam
+  #--------------------------------------------------------------------------
+  def actor_sparam(actor_id, param_id)
+    return "" unless param_id <= 9 && param_id >= 0
+    actor_id = $game_party.members[actor_id.abs].id if actor_id <= 0
+    actor = $game_actors[actor_id]
+    return "" if actor.nil?
+    case param_id
+    when 0,:tgr;      value = actor.tgr
+    when 1,:grd;      value = actor.grd
+    when 2,:rec;      value = actor.rec
+    when 3,:pha;      value = actor.pha
+    when 4,:mcr;      value = actor.mcr
+    when 5,:tcr;      value = actor.tcr
+    when 6,:pdr;      value = actor.pdr
+    when 7,:mdr;      value = actor.mdr
+    when 8,:fdr;      value = actor.fdr
+    when 9,:exr;      value = actor.exr       
+    end
+    return sprintf("%d%%", value * 100)
+  end
+  #--------------------------------------------------------------------------
+  # * New Method: escape_icon_and_text
+  #--------------------------------------------------------------------------
+  def escape_icon_and_text(data_id, type)
+    icon = 0
+    case type    
+    when :sparam, :xparam
+      name = eval("Vocab.#{type}_a(#{data_id})")
+      icon = eval("Icon.#{type}(#{data_id})") if $imported[:bm_icon] 
+    when :param, :weapon_types, :armor_types, :skill_types, :element
+      name = eval("Vocab.#{type}(#{data_id})")
+      icon = eval("Icon.#{type}(#{data_id})") if $imported[:bm_icon]
+    when :classes
+      name = eval("Vocab.#{type}(#{data_id})")
+      icon = Icon.class(data_id) if $imported[:bm_icon]
+    else; return ""
+    end
+    if icon != 0
+      text = "\eI[#{icon}]" + name
+    else
+      text = name
+    end
+    return text
+  end
+end
+#===============================================================================
+# 
+# END OF FILE
+# 
+#===============================================================================
