@@ -24,3 +24,7 @@ Dedicated Repositories for large amounts of scripts.
 
 ### Archeia Engine Ace
 - https://github.com/Archeia/AEA
+
+### DigiDeity
+- [Original Profile](https://github.com/DigiDeity/RPGMakerVXAceScripts)
+- https://github.com/Archeia/RPGMakerVXAceScripts
