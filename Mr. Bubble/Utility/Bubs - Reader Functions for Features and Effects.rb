@@ -1,4 +1,4 @@
-# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
+﻿# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
 # ║ Reader Functions for Features/Effects                 │ v1.4 │ (4/14/13) ║
 # ╚═══════════════════════════════════════════════════════╧══════╧═══════════╝
 # Script by:
@@ -288,11 +288,14 @@
 # Newest versions of this script can be found at 
 #                                           http://mrbubblewand.wordpress.com/
 #==============================================================================
+
 $imported ||= {}
 $imported["BubsFeaturesReader"] = true
+
 #==========================================================================
 # ++ This script contains no customization module ++
 #==========================================================================
+
 
 #==============================================================================
 # ++ RPG::EquipItem
@@ -729,6 +732,7 @@ class RPG::BaseItem
       agi
     when :luk
       luk
+
     when :mhp
       mhp
     when :mmp
@@ -745,6 +749,7 @@ class RPG::BaseItem
       agi
     when :luk 
       luk
+
     when :mhp_rate 
       mhp_rate
     when :mmp_rate 
@@ -761,6 +766,7 @@ class RPG::BaseItem
       agi_rate
     when :luk_rate 
       luk_rate
+
     when :hit 
       hit
     when :eva 
@@ -781,6 +787,7 @@ class RPG::BaseItem
       mrg
     when :trg 
       trg
+
     when :tgr 
       tgr
     when :grd 
@@ -801,6 +808,7 @@ class RPG::BaseItem
       fdr
     when :exr 
       exr
+
     when :element_rate 
       element_rate
     when :debuff_rate 
@@ -809,6 +817,7 @@ class RPG::BaseItem
       state_rate
     when :state_resist_set
       state_resist_set
+
     when :atk_elements
       atk_elements
     when :atk_states 
@@ -817,6 +826,7 @@ class RPG::BaseItem
       atk_speed
     when :atk_times_add 
       atk_times_add
+
     when :added_skill_types 
       added_skill_types
     when :added_skills 
@@ -825,6 +835,7 @@ class RPG::BaseItem
       sealed_skill_types
     when :sealed_skills 
       sealed_skills
+
     when :equip_wtypes 
       equip_wtypes
     when :equip_atypes 
@@ -835,6 +846,7 @@ class RPG::BaseItem
       sealed_equips
     when :dual_wield 
       dual_wield?
+
     when :action_times_plus 
       action_times_plus
       
@@ -846,8 +858,10 @@ class RPG::BaseItem
       substitute?
     when :preserve_tp 
       preserve_tp?
+
     when :collapse_effect 
       collapse_effect
+
     when :encounter_half 
       encounter_half?
     when :encounter_none 
@@ -862,7 +876,9 @@ class RPG::BaseItem
       drop_item_double?
     end
   end
+
 end # class RPG::BaseItem
+
 
 #==============================================================================
 # ++ RPG::UsableItem
@@ -1114,7 +1130,9 @@ class RPG::UsableItem
       common_event
     end
   end
+
 end # class RPG::UsableItem
+
 
 #==============================================================================
 # ++ RPG::EquipItem

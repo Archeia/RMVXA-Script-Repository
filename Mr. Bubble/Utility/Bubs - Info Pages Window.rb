@@ -1963,3 +1963,5 @@ class Window_InfoPages < Window_Base
   end
   
 end # class Window_InfoPages
+
+

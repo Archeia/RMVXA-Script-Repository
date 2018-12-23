@@ -1,4 +1,4 @@
-# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
+﻿# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
 # ║ Auto-Life Effect                                      │ v1.9 │ (8/17/12) ║
 # ╚═══════════════════════════════════════════════════════╧══════╧═══════════╝
 # Script by:
@@ -191,7 +191,7 @@ module Bubs
   # successfuly triggers.
   #
   # %s is automatically replaced by the battler's name. 
-  AUTOLIFE_EFFECT_TEXT = "%s's got a second wind!"
+  AUTOLIFE_EFFECT_TEXT = "%s resurrects!"
   
   #--------------------------------------------------------------------------
   #   Item Break Text Setting

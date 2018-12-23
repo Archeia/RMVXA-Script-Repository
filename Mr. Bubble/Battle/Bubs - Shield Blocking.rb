@@ -1,4 +1,4 @@
-# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
+﻿# ╔═══════════════════════════════════════════════════════╤══════╤═══════════╗
 # ║ Shield Blocking                                       │ v1.2 │ (4/28/13) ║
 # ╚═══════════════════════════════════════════════════════╧══════╧═══════════╝
 # Script by:
@@ -176,10 +176,10 @@ module Bubs
   #--------------------------------------------------------------------------
   #   Block Parameters Vocab
   #--------------------------------------------------------------------------
-  BLV_VOCAB = "BLK Value"             # Block Value
-  BLR_VOCAB = "BLK Reduction Rate"    # Block Reduction Rate
-  BLC_VOCAB = "BLK Chance"            # Block Chance
-  CBL_VOCAB = "Crit BLK Chance"   # Critical Block Chance
+  BLV_VOCAB = "Block Value"             # Block Value
+  BLR_VOCAB = "Block Reduction Rate"    # Block Reduction Rate
+  BLC_VOCAB = "Block Chance"            # Block Chance
+  CBL_VOCAB = "Critical Block Chance"   # Critical Block Chance
   
   #--------------------------------------------------------------------------
   #   Block Parameters Vocab Abbreviations
@@ -249,8 +249,8 @@ module Bubs
   # These settings allow you to choose a sound effect for normal and critical
   # blocks.
   #                    "Filename", Volume, Pitch
-  NORMAL_BLOCK_SE   = ["Parry",     90,   110]   # Normal Block SE
-  CRITICAL_BLOCK_SE = ["Evasion2",     90,   110]   # Critical Block SE
+  NORMAL_BLOCK_SE   = ["Evasion2",     80,   110]   # Normal Block SE
+  CRITICAL_BLOCK_SE = ["Evasion2",     80,   110]   # Critical Block SE
     
   #--------------------------------------------------------------------------
   #   Actor Default Block Parameter Formulas
@@ -275,7 +275,7 @@ module Bubs
   # For these formulas, :base_blr, :base_blc, and :base_cbl should 
   # produce rate values between 0~100.
   ACTOR_BLOCK_SETTINGS = {
-    :base_blv => "(self.def / 5)",     # Base Block Value Formula
+    :base_blv => "(self.def / 4)",     # Base Block Value Formula
     :base_blr => "0",                  # Base Block Reduction Rate Formula
     :base_blc => "5",                  # Base Block Chance Formula
     :base_cbl => "(blc * 100) / 3",    # Base Critical Block Chance Formula
@@ -285,7 +285,7 @@ module Bubs
   #--------------------------------------------------------------------------
   # The following settings allow you to set maximum values for any block
   # parameters for actors.
-    :max_blv => 9999,    # Maximum Block Value
+    :max_blv => 99999,    # Maximum Block Value
     :max_blr => 100,      # Maximum Block Reduction Rate (%)
     :max_blc => 75,       # Maximum Block Chance (%)
     :max_cbl => 50,       # Maximum Critical Block Chance (%)
@@ -350,7 +350,7 @@ module Bubs
   # :base_blr, :base_blc, and :base_cbl should produce rate values 
   # between 0~100.
   ENEMY_BLOCK_SETTINGS = {
-    :base_blv => "(self.def / 5)",  # Base Block Value Formula
+    :base_blv => "(self.def / 4)",  # Base Block Value Formula
     :base_blr => "0",               # Base Block Reduction Rate Formula
     :base_blc => "5",               # Base Block Chance Formula
     :base_cbl => "(blc * 100) / 3", # Base Critical Block Chance Formula
@@ -360,7 +360,7 @@ module Bubs
   #--------------------------------------------------------------------------
   # The following settings allow you to set maximum values for any block
   # parameters for enemies.
-    :max_blv => 9999,    # Maximum Block Value
+    :max_blv => 99999,    # Maximum Block Value
     :max_blr => 75,      # Maximum Block Reduction Rate (%)
     :max_blc => 75,       # Maximum Block Chance (%)
     :max_cbl => 50,       # Maximum Critical Block Chance (%)
