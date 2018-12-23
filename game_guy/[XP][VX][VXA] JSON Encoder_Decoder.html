@@ -1,0 +1,509 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0060)https://forum.chaos-project.com/index.php/topic,11691.0.html -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="./[XP][VX][VXA] JSON Encoder_Decoder_files/index.css">
+	<link rel="stylesheet" type="text/css" href="./[XP][VX][VXA] JSON Encoder_Decoder_files/webkit.css">
+	<script type="text/javascript" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/script.js.download"></script><style></style>
+	<script type="text/javascript" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/theme.js.download"></script>
+	<script type="text/javascript"><!-- // --><![CDATA[
+		var smf_theme_url = "https://forum.chaos-project.com/Themes/ChaosNew";
+		var smf_default_theme_url = "https://forum.chaos-project.com/Themes/default";
+		var smf_images_url = "https://forum.chaos-project.com/Themes/ChaosNew/images";
+		var smf_scripturl = "https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;";
+		var smf_iso_case_folding = false;
+		var smf_charset = "UTF-8";
+		var ajax_notification_text = "Loading...";
+		var ajax_notification_cancel_text = "Cancel";
+	// ]]></script>
+	
+	<meta name="description" content="[XP][VX][VXA] JSON Encoder/Decoder">
+	<title>[XP][VX][VXA] JSON Encoder/Decoder</title>
+	<link rel="canonical" href="https://forum.chaos-project.com/index.php?topic=11691.0">
+	<link rel="help" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=help">
+	<link rel="search" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=search">
+	<link rel="contents" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;">
+	<link rel="alternate" type="application/rss+xml" title="Chaos Project - RSS" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;type=rss;action=.xml">
+	<link rel="prev" href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,prev.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d">
+	<link rel="next" href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,next.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d">
+	<link rel="index" href="https://forum.chaos-project.com/index.php/board,91.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d">
+	<script src="./[XP][VX][VXA] JSON Encoder_Decoder_files/moo.ajax.js.download" type="text/javascript"></script>
+	<script src="./[XP][VX][VXA] JSON Encoder_Decoder_files/settings.js.download" type="text/javascript"></script>
+	<script type="text/javascript"><!-- // --><![CDATA[
+	if (window.addEventListener){
+		window.addEventListener("load", function(){loadChat();}, false);
+	} else if (window.attachEvent){
+		window.attachEvent("onload", function(){loadChat();});
+	}
+	var shoutFile="home";
+	var yshout_php="/index.php?yshout&topic=11691&board=91";
+	// ]]></script>
+	<script src="./[XP][VX][VXA] JSON Encoder_Decoder_files/yshout.js.download" type="text/javascript"></script>
+	<style type="text/css">
+		#yshout {
+			font-size: 10px;
+			overflow: hidden;
+		}
+		#yshout #yshout-toollinks { /* tool links (History, Commands, etc.) */
+		}
+		#yshout #shouts { /* main shouts area */
+		}
+		#yshout #shouts .shout { /* one shout */
+			float: none;
+			margin: 0 0 0; /* Top Bottom Linespacing */
+			line-height: 1;
+		}
+		#yshout .shout-timestamp {
+			font-style: normal;
+			font-weight: normal;
+		}
+		#yshout .shout-adminlinks { /* del and ban buttons */
+			font-size: 6pt;
+			color: #141414;
+		}
+		#yshout #shout-form {
+			margin: 0;
+			padding: 0;
+		}
+		#yshout #shout-form fieldset {
+			border: none;
+		}
+		#yshout #forum-name {
+			color: #666666;
+			width: 70px;
+			margin-right: 5px;
+		}
+		#yshout #shout-text {
+			width: 310px;
+			margin-right: 5px;
+		}
+		#yshout #shout-button {
+			width: 55px;
+		}
+		#yshout .shout-invalid { /* invalid shout (shout textbox) */
+			background: #FFFDD1;
+		}
+	</style>
+</head>
+<body>
+<div id="wrapper" style="width: 95%">
+	<div id="header"><div class="frame">
+		<div id="top_section">
+			<h1 class="forumtitle">
+				<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/logo.png" alt="Chaos Project"></a>
+			</h1>
+			<img id="upshrink" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/upshrink.png" alt="*" title="Shrink or expand the header." style="cursor: pointer;">
+			<div id="siteslogan" class="floatright"></div>
+		</div>
+		<div id="upper_section" class="middletext">
+			<div class="user">
+				<script type="text/javascript" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/sha1.js.download"></script>
+				<form id="guest_form" action="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=login2" method="post" accept-charset="UTF-8" onsubmit="hashLoginPassword(this, &#39;f1cf72d066e7f04b1841050f1fe0747e&#39;);">
+					<div class="info">Welcome, <strong>Guest</strong>. Please <a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=login">login</a> or <a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=register">register</a>.<br>Did you miss your <a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=activate">activation email</a>?</div>
+					<input type="text" name="user" size="10" class="input_text">
+					<input type="password" name="passwrd" size="10" class="input_password">
+					<select name="cookielength">
+						<option value="60">1 Hour</option>
+						<option value="1440">1 Day</option>
+						<option value="10080">1 Week</option>
+						<option value="43200">1 Month</option>
+						<option value="-1" selected="selected">Forever</option>
+					</select>
+					<input type="submit" value="Login" class="button_submit"><br>
+					<div class="info">Login with username, password and session length</div>
+					<input type="hidden" name="hash_passwrd" value="">
+				</form>
+			</div>
+			<div class="news normaltext">
+				<form id="search_form" action="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=search2" method="post" accept-charset="UTF-8">
+					<input type="text" name="search" value="" class="input_text">&nbsp;
+					<input type="submit" name="submit" value="Search" class="button_submit">
+					<input type="hidden" name="advanced" value="0">
+					<input type="hidden" name="topic" value="11691"></form>
+				<h2>News: </h2>
+				<p>The <a href="http://forum.chaos-project.com/index.php?topic=8.0" class="bbc_link" target="_blank">Storyline Service</a>! Get your inspiration and support <a href="http://forum.chaos-project.com/index.php?topic=8.0" class="bbc_link" target="_blank">here</a>!</p>
+			</div>
+		</div>
+		<br class="clear">
+		<script type="text/javascript"><!-- // --><![CDATA[
+			var oMainHeaderToggle = new smc_Toggle({
+				bToggleEnabled: true,
+				bCurrentlyCollapsed: false,
+				aSwappableContainers: [
+					'upper_section'
+				],
+				aSwapImages: [
+					{
+						sId: 'upshrink',
+						srcExpanded: smf_images_url + '/upshrink.png',
+						altExpanded: 'Shrink or expand the header.',
+						srcCollapsed: smf_images_url + '/upshrink2.png',
+						altCollapsed: 'Shrink or expand the header.'
+					}
+				],
+				oThemeOptions: {
+					bUseThemeSettings: false,
+					sOptionName: 'collapse_header',
+					sSessionVar: 'bebe06a',
+					sSessionId: 'f1cf72d066e7f04b1841050f1fe0747e'
+				},
+				oCookieOptions: {
+					bUseCookie: true,
+					sCookieName: 'upshrink'
+				}
+			});
+		// ]]></script>
+		<div id="main_menu">
+			<ul class="dropmenu" id="menu_nav">
+				<li id="button_home">
+					<a class="active firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;">
+						<span class="last firstlevel">Home</span>
+					</a>
+				</li>
+				<li id="button_script_database">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=script_database">
+						<span class="last firstlevel">Script Database</span>
+					</a>
+				</li>
+				<li id="button_help">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=help">
+						<span class="firstlevel">Help</span>
+					</a>
+				</li>
+				<li id="button_search">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=search">
+						<span class="firstlevel">Search</span>
+					</a>
+				</li>
+				<li id="button_calendar">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=calendar">
+						<span class="firstlevel">Calendar</span>
+					</a>
+				</li>
+				<li id="button_login">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=login">
+						<span class="firstlevel">Login</span>
+					</a>
+				</li>
+				<li id="button_register">
+					<a class="firstlevel" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=register">
+						<span class="last firstlevel">Register</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<br class="clear">
+	</div></div>
+	<div id="content_section"><div class="frame">
+		<div id="main_content_section">
+	<div class="navigate_section">
+		<ul>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;"><span>Chaos Project</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;#c2"><span>RPG Maker</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php/board,11.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>RPG Maker Scripts</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php/board,91.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>RMVX Ace Script Database</span></a> »
+			</li>
+			<li class="last">Topic: 
+				<a href="https://forum.chaos-project.com/index.php/topic,11691.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>[XP][VX][VXA] JSON Encoder/Decoder</span></a>
+			</li>
+		</ul>
+	</div>
+			<a id="top"></a>
+			<a id="msg164546"></a>
+			<div class="pagesection">
+				<div class="nextlinks"><a href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,prev.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#new">« previous</a> <a href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,next.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#new">next »</a></div>
+		<div class="buttonlist floatright">
+			<ul>
+				<li><a class="button_strip_print" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=printpage;topic=11691.0" rel="new_win nofollow"><span class="last">Print</span></a></li>
+			</ul>
+		</div>
+				<div class="pagelinks floatleft">Pages: [<strong>1</strong>] </div>
+			</div>
+			<div id="forumposts">
+				<div class="cat_bar">
+					<h3 class="catbg">
+						<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/normal_post.gif" align="bottom" alt="">
+						<span id="author">Author</span>
+						Topic: [XP][VX][VXA] JSON Encoder/Decoder &nbsp;(Read 4794 times)
+					</h3>
+				</div>
+				<form action="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=quickmod2;topic=11691.0" method="post" accept-charset="UTF-8" name="quickModForm" id="quickModForm" style="margin: 0;" onsubmit="return oQuickModify.bInEditMode ? oQuickModify.modifySave(&#39;f1cf72d066e7f04b1841050f1fe0747e&#39;, &#39;bebe06a&#39;) : false">
+				<div class="windowbg">
+					<span class="topslice"><span></span></span>
+					<div class="post_wrapper">
+						<div class="poster">
+							<h4>
+								<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/useroff.gif" alt="Offline">
+								<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=220" title="View the profile of G_G">G_G</a>
+							</h4>
+							<ul class="reset smalltext" id="msg_164546_extra_info">
+								<li class="title">Green Gmod Game_Guy AKA G4 AKA hyper-G AKA G-force</li>
+								<li class="membergroup">Global Moderator</li>
+								<li class="postgroup">Chaos Ultimate</li>
+								<li class="stars"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_gmod.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_gmod.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_gmod.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_gmod.png" alt="*"></li>
+								<li class="avatar">
+									<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=220">
+										<img class="avatar" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/uZNoKln.png" alt="">
+									</a>
+								</li>
+								<li class="postcount">Posts: 6591</li>
+								<li class="karma">LV: 407</li>
+								<li class="gender">Gender: <img class="gender" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/Male.gif" alt="Male"></li>
+								<li class="profile">
+									<ul>
+										<li><a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=220"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/profile_sm.gif" alt="View Profile" title="View Profile"></a></li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+						<div class="postarea">
+							<div class="flow_hidden">
+								<div class="keyinfo">
+									<div class="messageicon">
+										<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/xx.gif" alt="">
+									</div>
+									<h5 id="subject_164546">
+										<a href="https://forum.chaos-project.com/index.php/topic,11691.msg164546.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#msg164546" rel="nofollow">[XP][VX][VXA] JSON Encoder/Decoder</a>
+									</h5>
+									<div class="smalltext">« <strong> on:</strong> April 17, 2012, 11:32:52 PM »</div>
+									<div id="msg_164546_quick_mod"></div>
+								</div>
+							</div>
+							<div class="post">
+								<div class="inner" id="msg_164546"><div align="center"><span style="font-size: 24pt;" class="bbc_size"><strong>JSON Encoder/Decoder</strong></span><br><span style="font-size: 16pt;" class="bbc_size">Authors: game_guy</span><br><span style="font-size: 16pt;" class="bbc_size">Version: 1.1</span><br><span style="font-size: 14pt;" class="bbc_size">Type: Script Utility</span><br>Key Term: Scripting Tool</div><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Introduction</strong></span><br><br><div class="quoteheader"><div class="topslice_quote">Quote</div></div><blockquote class="bbc_standard_quote">JSON (JavaScript Object Notation) is a lightweight data-interchange format. It is easy for humans to read and write. It is easy for machines to parse and generate.</blockquote><div class="quotefooter"><div class="botslice_quote"></div></div>This is a simple JSON Parser or Decoder. It'll take JSON thats been formatted into a string and decode it into the proper object. You can also encode certain Ruby objects into JSON.<br><br>This is a scripter's utility and isn't meant to add any new functionality or prove usefulness to non-scripters.<br><br>(Released awhile ago on RMRK)<br><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Features</strong></span><br><br><ul class="bbc_list"><li>Decodes JSON format into ruby strings, arrays, hashes, integers, booleans.</li><li>Encodes Ruby objects into JSON format.</li></ul><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Screenshots</strong></span><br><br>N/A<br><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Demo</strong></span><br><br>No demo. <br><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Script</strong></span><br><br><div class="spoiler"><div class="spoilerheader"><input type="button" class="button_submit" value="Spoiler" onclick="n = this.parentNode.parentNode.lastChild;if(n.style.display == &#39;none&#39;) {n.style.display = &#39;block&#39;;} else {n.style.display = &#39;none&#39;;} return false;"> (click to show/hide)</div><div class="spoilerbody" style="display: block;"><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">#===============================================================================<br># JSON Encoder/Decoder<br># Version 1.1<br># Author: game_guy<br>#-------------------------------------------------------------------------------<br># Intro:<br># JSON (JavaScript Object Notation) is a lightweight data-interchange <br># format. It is easy for humans to read and write. It is easy for machines to <br># parse and generate.<br># This is a simple JSON Parser or Decoder. It'll take JSON thats been <br># formatted into a string and decode it into the proper object.<br># This script can also encode certain ruby objects into JSON.<br>#<br># Features:<br># Decodes JSON format into ruby strings, arrays, hashes, integers, booleans.<br>#<br># Instructions:<br># This is a scripters utility. To decode JSON data, call<br># JSON.decode("json string")<br># -Depending on "json string", this method can return any of the values:<br># &nbsp;-Integer<br># &nbsp;-String<br># &nbsp;-Boolean<br># &nbsp;-Hash<br># &nbsp;-Array<br># &nbsp;-Nil<br>#<br># To Encode objects, use<br># JSON.encode(object)<br># -This will return a string with JSON. Object can be any one of the following<br># &nbsp;-Integer<br># &nbsp;-String<br># &nbsp;-Boolean<br># &nbsp;-Hash<br># &nbsp;-Array<br># &nbsp;-Nil<br>#<br># Credits:<br># game_guy ~ Creating it.<br>#===============================================================================<br>module JSON<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;TOKEN_NONE = 0;<br>&nbsp;&nbsp;TOKEN_CURLY_OPEN = 1;<br>&nbsp;&nbsp;TOKEN_CURLY_CLOSED = 2;<br>&nbsp;&nbsp;TOKEN_SQUARED_OPEN = 3;<br>&nbsp;&nbsp;TOKEN_SQUARED_CLOSED = 4;<br>&nbsp;&nbsp;TOKEN_COLON = 5;<br>&nbsp;&nbsp;TOKEN_COMMA = 6;<br>&nbsp;&nbsp;TOKEN_STRING = 7;<br>&nbsp;&nbsp;TOKEN_NUMBER = 8;<br>&nbsp;&nbsp;TOKEN_TRUE = 9;<br>&nbsp;&nbsp;TOKEN_FALSE = 10;<br>&nbsp;&nbsp;TOKEN_NULL = 11;<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;@index = 0<br>&nbsp;&nbsp;@json = ""<br>&nbsp;&nbsp;@length = 0<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.decode(json)<br>&nbsp;&nbsp; &nbsp;@json = json<br>&nbsp;&nbsp; &nbsp;@index = 0<br>&nbsp;&nbsp; &nbsp;@length = @json.length<br>&nbsp;&nbsp; &nbsp;return self.parse<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode(obj)<br>&nbsp;&nbsp; &nbsp;if obj.is_a?(Hash)<br>&nbsp;&nbsp; &nbsp; &nbsp;return self.encode_hash(obj)<br>&nbsp;&nbsp; &nbsp;elsif obj.is_a?(Array)<br>&nbsp;&nbsp; &nbsp; &nbsp;return self.encode_array(obj)<br>&nbsp;&nbsp; &nbsp;elsif obj.is_a?(Fixnum) || obj.is_a?(Float)<br>&nbsp;&nbsp; &nbsp; &nbsp;return self.encode_integer(obj)<br>&nbsp;&nbsp; &nbsp;elsif obj.is_a?(String)<br>&nbsp;&nbsp; &nbsp; &nbsp;return self.encode_string(obj)<br>&nbsp;&nbsp; &nbsp;elsif obj.is_a?(TrueClass) || obj.is_a?(FalseClass)<br>&nbsp;&nbsp; &nbsp; &nbsp;return self.encode_bool(obj)<br>&nbsp;&nbsp; &nbsp;elsif obj.is_a?(NilClass)<br>&nbsp;&nbsp; &nbsp; &nbsp;return "null"<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return nil<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode_hash(hash)<br>&nbsp;&nbsp; &nbsp;string = "{"<br>&nbsp;&nbsp; &nbsp;hash.each_key {|key|<br>&nbsp;&nbsp; &nbsp; &nbsp;string += "\"#{key}\":" + self.encode(hash[key]).to_s + ","<br>&nbsp;&nbsp; &nbsp;}<br>&nbsp;&nbsp; &nbsp;string[string.size - 1, 1] = "}"<br>&nbsp;&nbsp; &nbsp;return string<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode_array(array)<br>&nbsp;&nbsp; &nbsp;string = "["<br>&nbsp;&nbsp; &nbsp;array.each {|i|<br>&nbsp;&nbsp; &nbsp; &nbsp;string += self.encode(i).to_s + ","<br>&nbsp;&nbsp; &nbsp;}<br>&nbsp;&nbsp; &nbsp;string[string.size - 1, 1] = "]"<br>&nbsp;&nbsp; &nbsp;return string<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode_string(string)<br>&nbsp;&nbsp; &nbsp;return "\"#{string}\""<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode_integer(int)<br>&nbsp;&nbsp; &nbsp;return int.to_s<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.encode_bool(bool)<br>&nbsp;&nbsp; &nbsp;return (bool.is_a?(TrueClass) ? "true" : "false")<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.next_token(debug = 0)<br>&nbsp;&nbsp; &nbsp;char = @json[@index, 1]<br>&nbsp;&nbsp; &nbsp;@index += 1<br>&nbsp;&nbsp; &nbsp;case char<br>&nbsp;&nbsp; &nbsp;when '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_NUMBER<br>&nbsp;&nbsp; &nbsp;when '{' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_CURLY_OPEN<br>&nbsp;&nbsp; &nbsp;when '}' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_CURLY_CLOSED<br>&nbsp;&nbsp; &nbsp;when '"' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_STRING<br>&nbsp;&nbsp; &nbsp;when ',' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_COMMA<br>&nbsp;&nbsp; &nbsp;when '['<br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_SQUARED_OPEN<br>&nbsp;&nbsp; &nbsp;when ']'<br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_SQUARED_CLOSED<br>&nbsp;&nbsp; &nbsp;when ':' <br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_COLON<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;@index -= 1<br>&nbsp;&nbsp; &nbsp;if @json[@index, 5] == "false"<br>&nbsp;&nbsp; &nbsp; &nbsp;@index += 5<br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_FALSE<br>&nbsp;&nbsp; &nbsp;elsif @json[@index, 4] == "true"<br>&nbsp;&nbsp; &nbsp; &nbsp;@index += 4<br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_TRUE<br>&nbsp;&nbsp; &nbsp;elsif @json[@index, 4] == "null"<br>&nbsp;&nbsp; &nbsp; &nbsp;@index += 4<br>&nbsp;&nbsp; &nbsp; &nbsp;return TOKEN_NULL<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return TOKEN_NONE<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.parse(debug = 0)<br>&nbsp;&nbsp; &nbsp;complete = false<br>&nbsp;&nbsp; &nbsp;while !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;if @index &gt;= @length<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;break<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp; &nbsp;token = self.next_token<br>&nbsp;&nbsp; &nbsp; &nbsp;case token<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_NONE<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_NUMBER<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return self.parse_number<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_CURLY_OPEN<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return self.parse_object<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_STRING<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return self.parse_string<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_SQUARED_OPEN<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return self.parse_array<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_TRUE<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return true<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_FALSE<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return false<br>&nbsp;&nbsp; &nbsp; &nbsp;when TOKEN_NULL<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.parse_object<br>&nbsp;&nbsp; &nbsp;obj = {}<br>&nbsp;&nbsp; &nbsp;complete = false<br>&nbsp;&nbsp; &nbsp;while !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;token = self.next_token<br>&nbsp;&nbsp; &nbsp; &nbsp;if token == TOKEN_CURLY_CLOSED<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;complete = true<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;break<br>&nbsp;&nbsp; &nbsp; &nbsp;elsif token == TOKEN_NONE<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil<br>&nbsp;&nbsp; &nbsp; &nbsp;elsif token == TOKEN_COMMA<br>&nbsp;&nbsp; &nbsp; &nbsp;else<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;name = self.parse_string<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil if name == nil<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;token = self.next_token<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil if token != TOKEN_COLON<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;value = self.parse<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;obj[name] = value<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return obj<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.parse_string<br>&nbsp;&nbsp; &nbsp;complete = false<br>&nbsp;&nbsp; &nbsp;string = ""<br>&nbsp;&nbsp; &nbsp;while !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;break if @index &gt;= @length<br>&nbsp;&nbsp; &nbsp; &nbsp;char = @json[@index, 1]<br>&nbsp;&nbsp; &nbsp; &nbsp;@index += 1<br>&nbsp;&nbsp; &nbsp; &nbsp;case char<br>&nbsp;&nbsp; &nbsp; &nbsp;when '"'<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;complete = true<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;break<br>&nbsp;&nbsp; &nbsp; &nbsp;else<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;string += char.to_s<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;if !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;return nil<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return string<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.parse_number<br>&nbsp;&nbsp; &nbsp;@index -= 1<br>&nbsp;&nbsp; &nbsp;negative = @json[@index, 1] == "-" ? true : false<br>&nbsp;&nbsp; &nbsp;string = ""<br>&nbsp;&nbsp; &nbsp;complete = false<br>&nbsp;&nbsp; &nbsp;while !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;break if @index &gt;= @length<br>&nbsp;&nbsp; &nbsp; &nbsp;char = @json[@index, 1]<br>&nbsp;&nbsp; &nbsp; &nbsp;@index += 1<br>&nbsp;&nbsp; &nbsp; &nbsp;case char<br>&nbsp;&nbsp; &nbsp; &nbsp;when "{", "}", ":", ",", "[", "]"<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;@index -= 1<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;complete = true<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;break<br>&nbsp;&nbsp; &nbsp; &nbsp;when "0", "1", "2", '3', '4', '5', '6', '7', '8', '9'<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;string += char.to_s<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return string.to_i<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;def self.parse_array<br>&nbsp;&nbsp; &nbsp;obj = []<br>&nbsp;&nbsp; &nbsp;complete = false<br>&nbsp;&nbsp; &nbsp;while !complete<br>&nbsp;&nbsp; &nbsp; &nbsp;token = self.next_token(1)<br>&nbsp;&nbsp; &nbsp; &nbsp;if token == TOKEN_SQUARED_CLOSED<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;complete = true<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;break<br>&nbsp;&nbsp; &nbsp; &nbsp;elsif token == TOKEN_NONE<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;return nil<br>&nbsp;&nbsp; &nbsp; &nbsp;elsif token == TOKEN_COMMA<br>&nbsp;&nbsp; &nbsp; &nbsp;else<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;@index -= 1<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;value = self.parse<br>&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;obj.push(value)<br>&nbsp;&nbsp; &nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;end<br>&nbsp;&nbsp; &nbsp;return obj<br>&nbsp;&nbsp;end<br>&nbsp;&nbsp;<br>end<br></code></div></div><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Instructions</strong></span><br><br>Its recommended to place this script at the top, then it can be used in any script below it. To call the parsing method, use<br><div class="spoiler"><div class="spoilerheader"><input type="button" class="button_submit" value="Spoiler: JSON Decode Example" onclick="n = this.parentNode.parentNode.lastChild;if(n.style.display == &#39;none&#39;) {n.style.display = &#39;block&#39;;} else {n.style.display = &#39;none&#39;;} return false;"> (click to show/hide)</div><div class="spoilerbody" style="display: block;"><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">JSON.decode(json)<br>Returns any of the following depending on "json":<br>-Integer<br>-String<br>-Boolean<br>-Hash<br>-Array<br>-Nil</code><br>Example:<br><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">json = '{"result":true,"profile":{"id":23,"display_name":"game_guy","group":{"id":"1","name":"Administrator","color":"#FF0000"}},"array":[0,1,2,3]}'<br>data = JSON.decode(json)</code><br>Output<br><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">data = {'result' =&gt; true, 'profile' =&gt; {'id' =&gt; 23, 'display_name' =&gt; 'game_guy', 'group' =&gt; {'id' =&gt; 1, 'name' =&gt; 'Administrator', 'color' =&gt; '#FF0000'}}, 'array' =&gt; [0, 1, 2, 3]}</code>As you can see, it supports multi-level hashes and the method returned a hash object since the string started with a "{". The first character is what defines what object its going to return.</div></div><br><div class="spoiler"><div class="spoilerheader"><input type="button" class="button_submit" value="Spoiler: JSON Encode Example" onclick="n = this.parentNode.parentNode.lastChild;if(n.style.display == &#39;none&#39;) {n.style.display = &#39;block&#39;;} else {n.style.display = &#39;none&#39;;} return false;"> (click to show/hide)</div><div class="spoilerbody" style="display: block;">This can encode the following Ruby objects into JSON format.<br><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">Integer<br>Boolean<br>String<br>Hash<br>Array<br>Nil</code>Here's your input.<br><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">data = {'result' =&gt; true, 'profile' =&gt; {'id' =&gt; 23, 'display_name' =&gt; 'game_guy', 'group' =&gt; {'id' =&gt; 1, 'name' =&gt; 'Administrator', 'color' =&gt; '#FF0000'}}, 'array' =&gt; [0, 1, 2, 3]}<br>json = JSON.encode(data)</code><br>Output<br><div class="codeheader">Code: <a href="javascript:void(0);" onclick="return smfSelectText(this);" class="codeoperation">[Select]</a></div><code class="bbc_code">'{"result":true,"profile":{"id":23,"display_name":"game_guy","group":{"id":"1","name":"Administrator","color":"#FF0000"}},"array":[0,1,2,3]}'</code></div></div><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Compatibility</strong></span><br><br>Should work with anything.<br><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Credits and Thanks</strong></span><br><br><ul class="bbc_list"><li>game_guy ~ For creating it.</li></ul><hr><span style="font-size: 18pt;" class="bbc_size"><strong>Author's Notes</strong></span><br><br>Enjoy! <img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/happy.gif" alt=":)" title="Happy" class="smiley"> You guys are lucky that VX Ace uses Ruby 1.9, or else this script wouldn't have been released. With the example code I posted, it takes a few seconds for Ruby 1.8 to parse it all. </div>
+							</div>
+						</div>
+						<div class="moderatorbar">
+							<div class="smalltext modified" id="modified_164546">
+								« <em>Last Edit: December 20, 2012, 08:55:50 PM by Ryex</em> »
+							</div>
+							<div class="smalltext reportlinks">
+								<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/ip.gif" alt="">
+								Logged
+							</div>
+							<div class="signature" id="msg_164546_signature"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/nrN8gOJ.png" alt="" class="bbc_img"></div>
+						</div>
+					</div>
+					<span class="botslice"><span></span></span>
+				</div>
+				<hr class="post_separator">
+				<a id="msg164561"></a>
+				<div class="windowbg2">
+					<span class="topslice"><span></span></span>
+					<div class="post_wrapper">
+						<div class="poster">
+							<h4>
+								<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/useroff.gif" alt="Offline">
+								<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=1" title="View the profile of Blizzard">Blizzard</a>
+							</h4>
+							<ul class="reset smalltext" id="msg_164561_extra_info">
+								<li class="title">This sexy</li>
+								<li class="membergroup">Administrator</li>
+								<li class="postgroup">has over 9000 posts</li>
+								<li class="stars"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_admin.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_admin.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_admin.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_admin.png" alt="*"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/crystal_admin.png" alt="*"></li>
+								<li class="avatar">
+									<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=1">
+										<img class="avatar" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/I4xhWjv.jpg" alt="">
+									</a>
+								</li>
+								<li class="postcount">Posts: 20003</li>
+								<li class="karma">LV: 651</li>
+								<li class="gender">Gender: <img class="gender" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/Male.gif" alt="Male"></li>
+								<li class="blurb">Magic midgets.</li>
+								<li class="profile">
+									<ul>
+										<li><a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=profile;u=1"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/profile_sm.gif" alt="View Profile" title="View Profile"></a></li>
+										<li><a href="http://www.chaos-project.com/" title="You&#39;re already on it. (-_-&#39;)" target="_blank" class="new_win"><img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/www_sm.gif" alt="You&#39;re already on it. (-_-&#39;)"></a></li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+						<div class="postarea">
+							<div class="flow_hidden">
+								<div class="keyinfo">
+									<div class="messageicon">
+										<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/xx.gif" alt="">
+									</div>
+									<h5 id="subject_164561">
+										<a href="https://forum.chaos-project.com/index.php/topic,11691.msg164561.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#msg164561" rel="nofollow">Re: [VXA] JSON Encoder/Decoder</a>
+									</h5>
+									<div class="smalltext">« <strong>Reply #1 on:</strong> April 18, 2012, 09:14:20 AM »</div>
+									<div id="msg_164561_quick_mod"></div>
+								</div>
+							</div>
+							<div class="post">
+								<div class="inner" id="msg_164561">Remember that you can use multiple tags in the title such as [XP][VX][VXA] to tell the database index to display a link to this script under all 3 RM categories, regardless in which section the script was actually posted. <img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/happy.gif" alt=":)" title="Happy" class="smiley"><br>Drago did it as well: <a href="http://forum.chaos-project.com/index.php?topic=11653.0" class="bbc_link" target="_blank">http://forum.chaos-project.com/index.php?topic=11653.0</a><br>And it works just fine as you can see: <a href="http://database.chaos-project.com/" class="bbc_link" target="_blank">http://database.chaos-project.com</a><br><br>EDIT: You forgot the keyterm. And you forgot it here as well: <a href="http://forum.chaos-project.com/index.php/topic,11690.0.html" class="bbc_link" target="_blank">http://forum.chaos-project.com/index.php/topic,11690.0.html</a></div>
+							</div>
+						</div>
+						<div class="moderatorbar">
+							<div class="smalltext modified" id="modified_164561">
+								« <em>Last Edit: April 18, 2012, 09:17:51 AM by Blizzard</em> »
+							</div>
+							<div class="smalltext reportlinks">
+								<img src="./[XP][VX][VXA] JSON Encoder_Decoder_files/ip.gif" alt="">
+								Logged
+							</div>
+							<div class="signature" id="msg_164561_signature">Check out <a href="http://day-games.com/" class="bbc_link" target="_blank">Daygames</a> and our games:<br><br><table class="bbc_table"><tbody><tr><td><span style="font-size: 8pt;" class="bbc_size"><strong>King of Booze</strong></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><strong>King of Booze: Never Ever</strong></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><strong>Pet Bots</strong></span></td></tr><tr><td><span style="font-size: 8pt;" class="bbc_size"><a href="http://play.google.com/store/apps/details?id=com.daygames.kingofbooze.drinkinggame.full" class="bbc_link" target="_blank">Drinking Game for Android</a></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><a href="http://play.google.com/store/apps/details?id=com.daygames.never.have.i.ever" class="bbc_link" target="_blank">Never have I ever for Android</a></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><a href="http://play.google.com/store/apps/details?id=com.daygames.petbotsgame" class="bbc_link" target="_blank">Pet Bots for Android</a></span></td></tr><tr><td><span style="font-size: 8pt;" class="bbc_size"><a href="http://itunes.apple.com/us/app/id715048833" class="bbc_link" target="_blank">Drinking Game for iOS</a></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><a href="https://itunes.apple.com/us/app/king-of-booze-never-have-i-ever-drinking-game/id1210440961?ls=1&amp;mt=8" class="bbc_link" target="_blank">Never have I ever for iOS</a></span></td><td><span style="font-size: 8pt;" class="bbc_size">&nbsp; &nbsp; &nbsp; </span></td><td><span style="font-size: 8pt;" class="bbc_size"><a href="https://itunes.apple.com/app/id1040215941" class="bbc_link" target="_blank">Pet Bots for iOS</a></span></td></tr><tr><td><span style="font-size: 8pt;" class="bbc_size"><a href="http://store.steampowered.com/app/517470/" class="bbc_link" target="_blank">Drinking Game on Steam</a></span></td></tr></tbody></table><br><hr><div class="quoteheader"><div class="topslice_quote">Quote from: winkio</div></div><blockquote class="bbc_standard_quote">I do not speak to bricks, either as individuals or in wall form.<br></blockquote><div class="quotefooter"><div class="botslice_quote"></div></div><br><div class="quoteheader"><div class="topslice_quote">Quote from: Barney Stinson</div></div><blockquote class="bbc_standard_quote">When I get sad, I stop being sad and be awesome instead. True story.</blockquote><div class="quotefooter"><div class="botslice_quote"></div></div></div>
+						</div>
+					</div>
+					<span class="botslice"><span></span></span>
+				</div>
+				<hr class="post_separator">
+				</form>
+			</div>
+			<a id="lastPost"></a>
+			<div class="pagesection">
+				
+		<div class="buttonlist floatright">
+			<ul>
+				<li><a class="button_strip_print" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=printpage;topic=11691.0" rel="new_win nofollow"><span class="last">Print</span></a></li>
+			</ul>
+		</div>
+				<div class="pagelinks floatleft">Pages: [<strong>1</strong>] </div>
+				<div class="nextlinks_bottom"><a href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,prev.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#new">« previous</a> <a href="https://forum.chaos-project.com/index.php/topic,11691.0/prev_next,next.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d#new">next »</a></div>
+			</div>
+	<div class="navigate_section">
+		<ul>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;"><span>Chaos Project</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;#c2"><span>RPG Maker</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php/board,11.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>RPG Maker Scripts</span></a> »
+			</li>
+			<li>
+				<a href="https://forum.chaos-project.com/index.php/board,91.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>RMVX Ace Script Database</span></a> »
+			</li>
+			<li class="last">Topic: 
+				<a href="https://forum.chaos-project.com/index.php/topic,11691.0.html?PHPSESSID=be84cc9776cc108487ee232bb91bb81d"><span>[XP][VX][VXA] JSON Encoder/Decoder</span></a>
+			</li>
+		</ul>
+	</div>
+			<div id="moderationbuttons"></div>
+			<div class="plainbox" id="display_jump_to"><label class="smalltext" for="display_jump_to_select">Jump to:</label> <select name="display_jump_to_select" id="display_jump_to_select" onfocus="grabJumpToContent();"><option value="?board=91.0">===&gt; RMVX Ace Script Database</option></select>&nbsp;<input type="button" value="go" onclick="window.location.href = &#39;https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;board=91.0&#39;;"></div>
+		<br class="clear">
+				<script type="text/javascript" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/topic.js.download"></script>
+				<script type="text/javascript"><!-- // --><![CDATA[
+					if ('XMLHttpRequest' in window)
+					{
+						var oQuickModify = new QuickModify({
+							sScriptUrl: smf_scripturl,
+							bShowModify: true,
+							iTopicId: 11691,
+							sTemplateBodyEdit: '\n\t\t\t\t\t\t\t\t<div id="quick_edit_body_container" style="width: 90%">\n\t\t\t\t\t\t\t\t\t<div id="error_box" style="padding: 4px;" class="error"><' + '/div>\n\t\t\t\t\t\t\t\t\t<textarea class="editor" name="message" rows="12" style="width: 100%; margin-bottom: 10px;" tabindex="1">%body%<' + '/textarea><br />\n\t\t\t\t\t\t\t\t\t<input type="hidden" name="bebe06a" value="f1cf72d066e7f04b1841050f1fe0747e" />\n\t\t\t\t\t\t\t\t\t<input type="hidden" name="topic" value="11691" />\n\t\t\t\t\t\t\t\t\t<input type="hidden" name="msg" value="%msg_id%" />\n\t\t\t\t\t\t\t\t\t<div class="righttext">\n\t\t\t\t\t\t\t\t\t\t<input type="submit" name="post" value="Save" tabindex="2" onclick="return oQuickModify.modifySave(\'f1cf72d066e7f04b1841050f1fe0747e\', \'bebe06a\');" accesskey="s" class="button_submit" />&nbsp;&nbsp;<input type="submit" name="cancel" value="Cancel" tabindex="3" onclick="return oQuickModify.modifyCancel();" class="button_submit" />\n\t\t\t\t\t\t\t\t\t<' + '/div>\n\t\t\t\t\t\t\t\t<' + '/div>',
+							sTemplateSubjectEdit: '<input type="text" style="width: 90%;" name="subject" value="%subject%" size="80" maxlength="80" tabindex="4" class="input_text" />',
+							sTemplateBodyNormal: '%body%',
+							sTemplateSubjectNormal: '<a hr'+'ef="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;'+'?topic=11691.msg%msg_id%#msg%msg_id%" rel="nofollow">%subject%<' + '/a>',
+							sTemplateTopSubject: 'Topic: %subject% &nbsp;(Read 4794 times)',
+							sErrorBorderStyle: '1px solid red'
+						});
+
+						aJumpTo[aJumpTo.length] = new JumpTo({
+							sContainerId: "display_jump_to",
+							sJumpToTemplate: "<label class=\"smalltext\" for=\"%select_id%\">Jump to:<" + "/label> %dropdown_list%",
+							iCurBoardId: 91,
+							iCurBoardChildLevel: 1,
+							sCurBoardName: "RMVX Ace Script Database",
+							sBoardChildLevelIndicator: "==",
+							sBoardPrefix: "=> ",
+							sCatSeparator: "-----------------------------",
+							sCatPrefix: "",
+							sGoButtonLabel: "go"
+						});
+
+						aIconLists[aIconLists.length] = new IconList({
+							sBackReference: "aIconLists[" + aIconLists.length + "]",
+							sIconIdPrefix: "msg_icon_",
+							sScriptUrl: smf_scripturl,
+							bShowModify: true,
+							iBoardId: 91,
+							iTopicId: 11691,
+							sSessionId: "f1cf72d066e7f04b1841050f1fe0747e",
+							sSessionVar: "bebe06a",
+							sLabelIconList: "Message Icon",
+							sBoxBackground: "transparent",
+							sBoxBackgroundHover: "#ffffff",
+							iBoxBorderWidthHover: 1,
+							sBoxBorderColorHover: "#adadad" ,
+							sContainerBackground: "#ffffff",
+							sContainerBorder: "1px solid #adadad",
+							sItemBorder: "1px solid #ffffff",
+							sItemBorderHover: "1px dotted gray",
+							sItemBackground: "transparent",
+							sItemBackgroundHover: "#e0e0f0"
+						});
+					}
+				// ]]></script>
+	<script language="javascript" type="text/javascript" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/shoutbox.js.download"></script>
+	<script language="javascript" type="text/javascript"><!-- // --><![CDATA[
+		Shoutbox.msgdown = 1;
+		Shoutbox.refresh = 10000000;
+		Shoutbox.height = 400;
+		Shoutbox.keepmsgs = 300;
+		Shoutbox.lang.tooshort = "The message must not be shorter than ";
+		Shoutbox.lang.toolong = "The message must not be longer than ";
+		Shoutbox.lang.posting = "The above message is being sent";
+		Shoutbox.lang.banned = "You have been banned. Reload page to see reason";
+	// ]]></script>
+	<br>
+	<span class="clear upperframe"><span></span></span>
+	<div class="roundframe"><div class="innerframe">
+	<div class="cat_bar">
+		<h3 class="catbg">
+			<a href="javascript:void(0);" class="collapse floatright" style="margin-top: 10px; margin-right: 5px;">
+				<img border="0" onclick="Shoutbox_ShowHide();" id="shoutbox_img" alt="-" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/expand.gif">
+			</a>
+			Shoutbox
+		</h3>
+	</div>
+	<div id="shoutbox" style="display:none">
+			<div>
+				<span class="topslice"><span></span></span>
+					<div class="content">
+						<div class="smalltext" style="text-align: right;">
+							<span class="floatleft" style="margin-right:0.5em">
+								<img id="shoutbox_status" src="./[XP][VX][VXA] JSON Encoder_Decoder_files/loading.gif" alt="" border="0">
+							</span>
+							<a href="https://forum.chaos-project.com/index.php/topic,11691.0.html#refresh" onclick="Shoutbox_GetMsgs(); return false;">Update</a>
+							| <a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=shoutbox" onclick="return reqWin(this.href,800, 400 + 80);">Open Popup</a>
+							<span id="shoutbox_bar"> | <a title="Powered by SMFPacks.com" target="_blank" href="http://www.smfpacks.com/">© SMFPacks</a></span>
+						</div>
+						<div id="shoutbox_banned" style="margin:0 0.6em;padding-right:0.6em;overflow:auto;height:400px;max-height:400px">
+							<table cellspacing="0" cellpadding="0" border="0" align="left"><tbody><tr><td valign="bottom" height="400"><table id="shoutbox_table" cellspacing="0" cellpadding="2" border="0">
+								<tbody><tr id="shoutbox_msgs"><td></td></tr>
+							</tbody></table></td></tr></tbody></table>
+						</div>
+						<hr>
+					</div>
+				<span class="botslice"><span></span></span>
+			</div>
+	</div>
+	</div></div>
+	<span class="lowerframe"><span></span></span>
+	<script language="javascript" type="text/javascript"><!-- // --><![CDATA[
+		Shoutbox_GetFeatures();
+		Shoutbox.msgs = setTimeout("Shoutbox_GetMsgs();", 1);
+	// ]]></script>
+		</div>
+	</div></div>
+	<div id="footer_section"><div class="frame">
+		<ul class="reset">
+			<li class="copyright">
+			<span class="smalltext" style="display: inline; visibility: visible; font-family: Verdana, Arial, sans-serif;"><a href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=credits" title="Simple Machines Forum" target="_blank" class="new_win">SMF 2.0.13</a> |
+ <a href="http://www.simplemachines.org/about/smf/license.php" title="License" target="_blank" class="new_win">SMF © 2016</a>, <a href="http://www.simplemachines.org/" title="Simple Machines" target="_blank" class="new_win">Simple Machines</a>
+			</span></li>
+			<li><a id="button_xhtml" href="http://validator.w3.org/check?uri=referer" target="_blank" class="new_win" title="Valid XHTML 1.0!"><span>XHTML</span></a></li>
+			<li><a id="button_rss" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;action=.xml;type=rss" class="new_win"><span>RSS</span></a></li>
+			<li class="last"><a id="button_wap2" href="https://forum.chaos-project.com/index.php?PHPSESSID=be84cc9776cc108487ee232bb91bb81d&amp;wap2" class="new_win"><span>WAP2</span></a></li>
+		</ul>
+	</div></div>
+</div>
+<div id="ritekit-alerts"></div><span id="buffer-extension-hover-button" style="display: none; position: absolute; z-index: 8675309; width: 100px; height: 25px; background-image: url(&quot;chrome-extension://noojglkidnpfjbincgijbaiedldjfbhh/data/shared/img/buffer-hover-icon@1x.png&quot;); background-size: 100px 25px; opacity: 0.9; cursor: pointer; top: 2016.28px; left: 634.672px;"></span></body></html>
