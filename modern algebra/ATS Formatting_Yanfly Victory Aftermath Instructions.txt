@@ -1,0 +1,15 @@
+If using Yanfly's Victory Aftermath with the Formatting, then \n will not work in quotes to break lines. You can fix that in two ways (Note: In some older versions of the Victory Aftermath script, \n would not work at all. The following fixes apply only to versions of Yanfly's Victory Aftermath that are v. 1.04 or greater):
+
+If you want to turn off paragraph formatting altogether, you can simply go to line 171 of the Victory Aftermath script and add /pf anywhere the following line:
+Code: [Select]
+    HEADER_TEXT = "\e>\eC[6]%s\eC[0]\e<\n"  # Always at start of messages.
+
+Like this:
+Code: [Select]
+    HEADER_TEXT = "/pf\e>\eC[6]%s\eC[0]\e<\n"  # Always at start of messages.
+
+Alternatively, if you have ATS: Formatting 1.0.3. or later, the \lb code can be used. So, if you want paragraph formatting to apply to the body of the quote but not to the header, you would change the same line and replace \n with \elb, like so:
+Code: [Select]
+    HEADER_TEXT = "\e>\eC[6]%s\eC[0]\e<\elb"  # Always at start of messages.
+
+You can also use \lb in the notefields to break a line manually. 

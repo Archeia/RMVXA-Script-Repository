@@ -1,0 +1,28 @@
+There is a small bug in Yanfly's Ace Equip Engine. Although it works functionally, when scrolling through instances of the same item, differences in stats will not be shown unless it is the first one you select after looking at some other item. ekomega investigated the problem and determined that all you need to do to fix this error is to find line 1098 in Yanfly's script, which should look like this:
+
+Code: [Select]
+#--------------------------------------------------------------------------
+  # overwrite method: update_help
+  #--------------------------------------------------------------------------
+  def update_help
+    super
+    return if @actor.nil?
+    return if @status_window.nil?
+   return if @last_item == item
+    @last_item = item
+    temp_actor = Marshal.load(Marshal.dump(@actor))
+    temp_actor.force_change_equip(@slot_id, item)
+    @status_window.set_temp_actor(temp_actor)
+  end
+
+All you need to do is comment out or delete the following line:
+
+Code: [Select]
+return if @last_item == item
+
+As far as I know, that should not cause any problems re: lag, since I don't believe that method is called except when the help window is likely to require updating. However, if deleting the line altogether makes you nervous, then you can replace it with:
+
+Code: [Select]
+return if @last_item.equal?(item)
+
+Many thanks to ekomega for discovering and fixing this incompatibility. 
