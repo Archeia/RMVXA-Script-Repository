@@ -1,0 +1,324 @@
+# HP/SP/EXP Gauge Script v1.00
+# Distribution original support URL
+# http://members.jcom.home.ne.jp/cogwheel/
+
+#==============================================================================
+# ** Game_Actor
+#------------------------------------------------------------------------------
+#  This class handles the actor. It's used within the Game_Actors class
+#  ($game_actors) and refers to the Game_Party class ($game_party).
+#==============================================================================
+
+class Game_Actor < Game_Battler
+  def now_exp
+    return @exp - @exp_list[@level]
+  end
+  def next_exp
+    return @exp_list[@level+1] > 0 ? @exp_list[@level+1] - @exp_list[@level] : 0
+  end
+end
+
+#==============================================================================
+# ** Window_Base
+#------------------------------------------------------------------------------
+#  This class is for all in-game windows.
+#==============================================================================
+
+class Window_Base < Window
+  #--------------------------------------------------------------------------
+  # * Draw HP Gauge
+  #--------------------------------------------------------------------------
+  # Modification of the original Draw HP process
+  alias :draw_actor_hp_hpsp :draw_actor_hp
+  def draw_actor_hp(actor, x, y, width = 144)
+    # Determine the rate of fill based on the actor's HP and HP Max
+    if actor.maxhp != 0
+      rate = actor.hp.to_f / actor.maxhp
+    else
+      rate = 0
+    end
+    # plus_x:     revised x-coordinate
+    # rate_x:     revised X-coordinate as (%)
+    # plus_y:     revised y-coordinate
+    # plus_width: revised width
+    # rate_width: revised width as (%)
+    # height:     Vertical width
+    # align1: Type 1 ( 0: left justify  1: center justify 2: right justify )
+    # align2: Type 2 ( 0: Upper stuffing 1: Central arranging  2:Lower stuffing )
+    # align3: Gauge type 0:Left justify 1: Right justify
+    plus_x = 0
+    rate_x = 0
+    plus_y = 25
+    plus_width = 0
+    rate_width = 100
+    height = 10
+    align1 = 1
+    align2 = 2
+    align3 = 0
+    # Gradation settings:  grade1: Empty gauge   grade2:Actual gauge
+    # (0:On side gradation   1:Vertically gradation    2: Slantedly gradation)
+    grade1 = 1
+    grade2 = 0
+    # Color setting. color1: Outermost framework, color2: Medium framework
+    # color3: Empty framework dark color, color4: Empty framework light/write color
+    color1 = Color.new(0, 0, 0, 192)
+    color2 = Color.new(255, 255, 192, 192)
+    color3 = Color.new(0, 0, 0, 192)
+    color4 = Color.new(64, 0, 0, 192)
+    # Color setting of gauge
+    # Usually color setting of the time    
+    color5 = Color.new(80 - 24 * rate, 80 * rate, 14 * rate, 192)
+    color6 = Color.new(240 - 72 * rate, 240 * rate, 62 * rate, 192)
+    # Determine the gauge's width & fill based on the actor's HP
+    if actor.maxhp != 0
+      hp = (width + plus_width) * actor.hp * rate_width / 100 / actor.maxhp
+    else
+      hp = 0
+    end
+    # Drawing of gauge
+    gauge_rect(x + plus_x + width * rate_x / 100, y + plus_y,
+                width, plus_width + width * rate_width / 100,
+                height, hp, align1, align2, align3,
+                color1, color2, color3, color4, color5, color6, grade1, grade2)
+    # Call the original Draw HP process
+    draw_actor_hp_hpsp(actor, x, y, width)
+  end
+  #--------------------------------------------------------------------------
+  # * Draw SP Gauge
+  #--------------------------------------------------------------------------
+  # Modification of the original Draw SP process
+  alias :draw_actor_sp_hpsp :draw_actor_sp
+  def draw_actor_sp(actor, x, y, width = 144)
+    # Determine the rate of fill based on the actor's SP and SP Max
+    if actor.maxsp != 0
+      rate = actor.sp.to_f / actor.maxsp
+    else
+      rate = 1
+    end
+    # plus_x:     revised x-coordinate
+    # rate_x:     revised X-coordinate as (%)
+    # plus_y:     revised y-coordinate
+    # plus_width: revised width
+    # rate_width: revised width as (%)
+    # height:     Vertical width
+    # align1: Type 1 ( 0: left justify  1: center justify 2: right justify )
+    # align2: Type 2 ( 0: Upper stuffing 1: Central arranging  2:Lower stuffing )
+    # align3: Gauge type 0:Left justify 1: Right justify
+    plus_x = 0
+    rate_x = 0
+    plus_y = 25
+    plus_width = 0
+    rate_width = 100
+    height = 10
+    align1 = 1
+    align2 = 2
+    align3 = 0
+    # Gradation settings:  grade1: Empty gauge   grade2:Actual gauge
+    # (0:On side gradation   1:Vertically gradation    2: Slantedly gradation)
+    grade1 = 1
+    grade2 = 0
+    # Color setting. color1: Outermost framework, color2: Medium framework
+    # color3: Empty framework dark color, color4: Empty framework light/write color
+    color1 = Color.new(0, 0, 0, 192)
+    color2 = Color.new(255, 255, 192, 192)
+    color3 = Color.new(0, 0, 0, 192)
+    color4 = Color.new(0, 64, 0, 192)
+    # Color setting of gauge
+    # Usually color setting of the time       
+    color5 = Color.new(14 * rate, 80 - 24 * rate, 80 * rate, 192)
+    color6 = Color.new(62 * rate, 240 - 72 * rate, 240 * rate, 192)
+    # Determine the gauge's width & fill based on the actor's SP
+    if actor.maxsp != 0
+      sp = (width + plus_width) * actor.sp * rate_width / 100 / actor.maxsp
+    else
+      sp = (width + plus_width) * rate_width / 100
+    end
+    # Drawing of gauge
+    gauge_rect(x + plus_x + width * rate_x / 100, y + plus_y,
+                width, plus_width + width * rate_width / 100,
+                height, sp, align1, align2, align3,
+                color1, color2, color3, color4, color5, color6, grade1, grade2)
+    # Call the original Draw HP process
+    draw_actor_sp_hpsp(actor, x, y, width)
+  end
+  #--------------------------------------------------------------------------
+  # * Draw EXP Gauge
+  #--------------------------------------------------------------------------
+  # Modification of the original Draw HP process
+  alias :draw_actor_exp_hpsp :draw_actor_exp
+  def draw_actor_exp(actor, x, y, width = 204)
+    # Determine the rate of fill based on the actor's EXP and Next EXP
+    if actor.next_exp != 0
+      rate = actor.now_exp.to_f / actor.next_exp
+    else
+      rate = 1
+    end
+    # plus_x:     revised x-coordinate
+    # rate_x:     revised X-coordinate as (%)
+    # plus_y:     revised y-coordinate
+    # plus_width: revised width
+    # rate_width: revised width as (%)
+    # height:     Vertical width
+    # align1: Type 1 ( 0: left justify  1: center justify 2: right justify )
+    # align2: Type 2 ( 0: Upper stuffing 1: Central arranging  2:Lower stuffing )
+    # align3: Gauge type 0:Left justify 1: Right justify
+    plus_x = 0
+    rate_x = 0
+    plus_y = 25
+    plus_width = 0
+    rate_width = 100
+    height = 10
+    align1 = 1
+    align2 = 2
+    align3 = 0
+    # Gradation settings:  grade1: Empty gauge   grade2:Actual gauge
+    # (0:On side gradation   1:Vertically gradation    2: Slantedly gradation)
+    grade1 = 1
+    grade2 = 0
+    # Color setting. color1: Outermost framework, color2: Medium framework
+    # color3: Empty framework dark color, color4: Empty framework light/write color
+    color1 = Color.new(0, 0, 0, 192)
+    color2 = Color.new(255, 255, 192, 192)
+    color3 = Color.new(0, 0, 0, 192)
+    color4 = Color.new(64, 0, 0, 192)
+    # Color setting of gauge
+    # Usually color setting of the time      
+    color5 = Color.new(80 * rate, 80 - 80 * rate ** 2, 80 - 80 * rate, 192)
+    color6 = Color.new(240 * rate, 240 - 240 * rate ** 2, 240 - 240 * rate, 192)
+    # Determine the gauge's width & fill based on the actor's Next EXP
+    if actor.next_exp != 0
+      exp = (width + plus_width) * actor.now_exp * rate_width /
+                                                          100 / actor.next_exp
+    else
+      exp = (width + plus_width) * rate_width / 100
+    end
+    # Drawing of gauge
+    gauge_rect(x + plus_x + width * rate_x / 100, y + plus_y,
+                width, plus_width + width * rate_width / 100,
+                height, exp, align1, align2, align3,
+                color1, color2, color3, color4, color5, color6, grade1, grade2)
+    # Call the original Draw EXP process
+    draw_actor_exp_hpsp(actor, x, y)
+  end
+  #--------------------------------------------------------------------------
+  # * Drawing of gauge
+  #--------------------------------------------------------------------------
+  def gauge_rect(x, y, rect_width, width, height, gauge, align1, align2, align3,
+                color1, color2, color3, color4, color5, color6, grade1, grade2)
+    case align1
+    when 1
+      x += (rect_width - width) / 2
+    when 2
+      x += rect_width - width
+    end
+    case align2
+    when 1
+      y -= height / 2
+    when 2
+      y -= height
+    end
+    # Framework Drawing
+    self.contents.fill_rect(x, y, width, height, color1)
+    self.contents.fill_rect(x + 1, y + 1, width - 2, height - 2, color2)
+    if align3 == 0
+      if grade1 == 2
+        grade1 = 3
+      end
+      if grade2 == 2
+        grade2 = 3
+      end
+    end
+    if (align3 == 1 and grade1 == 0) or grade1 > 0
+      color = color3
+      color3 = color4
+      color4 = color
+    end
+    if (align3 == 1 and grade2 == 0) or grade2 > 0
+      color = color5
+      color5 = color6
+      color6 = color
+    end
+    # Drawing of empty gauge
+    self.contents.gradation_rect(x + 2, y + 2, width - 4, height - 4,
+                                  color3, color4, grade1)
+    if align3 == 1
+      x += width - gauge
+    end
+    #  Drawing of actual gauge
+    self.contents.gradation_rect(x + 2, y + 2, gauge - 4, height - 4,
+                                  color5, color6, grade2)
+  end
+end
+
+#------------------------------------------------------------------------------
+# New routine added to the Bitmap class. 
+#============================================================================== 
+
+class Bitmap
+#-------------------------------------------------------------------------- 
+# * Rectangle Gradation Indicator
+#   color1: Start color 
+#   color2: Ending color 
+#   align: 0: On side gradation 
+#          1: Vertically gradation 
+#          2: The gradation (intense concerning slantedly heavily note) 
+#-------------------------------------------------------------------------- 
+  def gradation_rect(x, y, width, height, color1, color2, align = 0)
+    if align == 0
+      for i in x...x + width
+        red   = color1.red + (color2.red - color1.red) * (i - x) / (width - 1)
+        green = color1.green +
+                (color2.green - color1.green) * (i - x) / (width - 1)
+        blue  = color1.blue +
+                (color2.blue - color1.blue) * (i - x) / (width - 1)
+        alpha = color1.alpha +
+                (color2.alpha - color1.alpha) * (i - x) / (width - 1)
+        color = Color.new(red, green, blue, alpha)
+        fill_rect(i, y, 1, height, color)
+      end
+    elsif align == 1
+      for i in y...y + height
+        red   = color1.red +
+                (color2.red - color1.red) * (i - y) / (height - 1)
+        green = color1.green +
+                (color2.green - color1.green) * (i - y) / (height - 1)
+        blue  = color1.blue +
+                (color2.blue - color1.blue) * (i - y) / (height - 1)
+        alpha = color1.alpha +
+                (color2.alpha - color1.alpha) * (i - y) / (height - 1)
+        color = Color.new(red, green, blue, alpha)
+        fill_rect(x, i, width, 1, color)
+      end
+    elsif align == 2
+      for i in x...x + width
+        for j in y...y + height
+          red   = color1.red + (color2.red - color1.red) *
+                  ((i - x) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          green = color1.green + (color2.green - color1.green) *
+                  ((i - x) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          blue  = color1.blue + (color2.blue - color1.blue) *
+                  ((i - x) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          alpha = color1.alpha + (color2.alpha - color1.alpha) *
+                  ((i - x) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          color = Color.new(red, green, blue, alpha)
+          set_pixel(i, j, color)
+        end
+      end
+    elsif align == 3
+      for i in x...x + width
+        for j in y...y + height
+          red   = color1.red + (color2.red - color1.red) *
+                ((x + width - i) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          green = color1.green + (color2.green - color1.green) *
+                ((x + width - i) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          blue  = color1.blue + (color2.blue - color1.blue) *
+                ((x + width - i) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          alpha = color1.alpha + (color2.alpha - color1.alpha) *
+                ((x + width - i) / (width - 1.0) + (j - y) / (height - 1.0)) / 2
+          color = Color.new(red, green, blue, alpha)
+          set_pixel(i, j, color)
+        end
+      end
+    end
+  end
+end
