@@ -1,0 +1,461 @@
+# Zeus Lights & Shadows : User Guide v1.3
+=begin
+  Description :
+      This script allows you to display lights effects and shadows.
+      There are already a lot of scripts to do that, but my goal with this one
+      is to do something different.
+      Thus lights illuminate the night, ie you can set the screen tone to whole
+      black (-255) and lights will act like holes in a mask and will allow us to
+      see the map clearly.
+      The shadows on the other hand are not dynamic, lights generate no shadow,
+      shadows must be placed manually, much like on VXace, we can consider that
+      they are all shadows of the sun.
+      The shadows are not superposed (which is absurd), but merged.
+      The shadows are not above but below all, you can have the head passes in
+      front of a shadow, the character darken only when they walk in the shade.
+      The opacity of shadows declines with the brightness of the map,
+      ie no shade from the sun at night.
+      Auto shadows of VX and VXace are managed by this script.
+      There's also an option to disable them at the very beginning of the script.
+      The following commands are all to be used in scripts inserts.
+    
+  Log Change :
+    1.3 :
+      - new option to disable lights at the beginning of the script
+      - new option to disable shadows at the beginning of the script
+      - new option in events to prevent them from being darkened
+      - new option in shadows to setup if they should darken characters or not
+      - new option that allow to create lights/shadows without naming them
+        they will be named automatically with the id of their event
+      - fixed display bug related to scripts that change the game size during
+        game on map even if it's a nonsense
+      - fixed display bug related to shake screen
+    1.2 :
+      - fixed bug on XP
+      - added quick overview of functions below
+    1.1 :
+      - fixed bug related to region id on VXace
+      
+  Recommendations for use :
+      1/ player/vehicles vs events/map
+          The script allow us to link lights/shadows to player, vehicles, events
+          or directly to map.
+          Those associated with player/vehicles are saved from a map to another,
+          we need to initialize them once and they will remain until we decide to
+          remove them.
+          However for events/maps it's the opposite, lights/shadows are deleted
+          every time we transfer from a map, we must ensure that they are reset
+          every time we enter the map.
+      2/ initialization
+          I've created a special command that allow to automatically execute
+          scripts on events loading, we use it like this :
+            Comment: <setup>
+            Script: ...lights/shadows initialization scripts...
+            Comment: </setup>
+          All that lies between the <setup> tags will be executed automatically
+          (and only) when loading the page (even if it's supposed to be triggered
+          by the action button).
+          Actually if you want you can put anything other than scripts between
+          these two tags, just avoid the commands that are waiting for
+          completion​​/validation (like messages) otherwise your game will explode.
+          We can initialize all our lights from a single event if we want to,
+          that said if we decide to link our light to an event perhaps it would
+          be more convenient to have the initialization done directly within.
+          If an event have several pages only commands in the active page will
+          be executed.
+    
+  Overview :
+    - light(key).setup(filename)
+    - light(key).chara_id = n
+    - light(key).clear
+    - light(key).active
+    - light(key).set_pos(x, y, duration)
+    - light(key).set_origin(x, y, duration)
+    - light(key).set_parallax(x, y, duration)
+    - light(key).set_opacity(opacity, duration)
+    - light(key).set_color(red, green, blue, alpha, duration)
+    - light(key).set_zoom(zoom, duration)
+    - light(key).set_flicker(variance, refresh_rate, duration)
+    - light(key).set_angle(angle, duration)
+    - light(key).set_wave(amp, length, speed, duration)
+    - light(key).visible = true ou false
+    - light(key).blend_type = 0 ou 1 ou 2
+    - light(key).directions = n
+    - light(key).patterns = n
+    - light(key).anime_rate = n
+    - shadow(key).setup(filename)
+    - shadow(key).setup(width, height)
+    - shadow(key).chara_id = n
+    - shadow(key).clear
+    - shadow(key).active
+    - shadow(key).set_pos(x, y, duration)
+    - shadow(key).set_origin(x, y, duration)
+    - shadow(key).set_parallax(x, y, duration)
+    - shadow(key).set_opacity(opacity, duration)
+    - shadow(key).set_color(red, green, blue, alpha, duration)
+    - shadow(key).set_zoom(zoom, duration)
+    - shadow(key).visible = true ou false
+    - shadow(key).directions = n
+    - shadow(key).patterns = n
+    - shadow(key).anime_rate = n
+    - shadow(key).shadowable = true or false
+    - set_shadowable(value, chara_id)
+    
+  Lights :
+    - light(key).setup(filename)
+            Initializes a new light.
+        key = an identifier for our light, each light must have a name of its own.
+            We reuses its identifier whenever we want to change a light.
+            We can put no key, the script will then generate one automatically
+            taking the id of the event that runs the script, for example "event5".
+            This can be useful if for example we put a light in an event and we
+            want to do copy/paste, rather than having to change the name in each
+            copy we can put no key and let the script name them.
+        filename = the file name used for the light.
+            The extension is not mandatory.
+            The file must be in the Pictures folder, you can use subfolders if
+            you want with / as separators.
+            The light must be black with transparent backgrounds,
+            it's important for the internal workings of the script.
+            To add color to the light It's explained below.
+        Example :
+            light("light 1").setup("torch.png") # new light
+            light.setup("torch.png") # new light without name
+            
+    - light(key).chara_id = n
+            Allows to link a light to a character (event, player, vehicle).
+            It has several effects, light will automatically follow its character.
+            The light will synchronize direction and animation if possible.
+            If associated with an event the light will disappear if the event is
+            transparent, erased, or if it has no active page (aka if the
+            conditions of any of its pages are met).
+        n = id of the character on which to display the light.
+            If we put 0 the light will not follow any character, it will have
+            coordinates related to map.
+            If we put a number > 0, the light will follow the corresponding event.
+            If we put @event_id it means "this event", which runs the script.
+            If we put -1 the light will follow the player.
+            If we put -2, -3, -4, it's for followers. (VXace only)
+            If we put -5, -6, -7, it's for vehicles (VX & VXace only)
+            respectively boat, ship and airship.
+            Default value is 0.
+        Example :
+            light("light 1").chara_id = -1 # links light to player
+            
+    - light(key).clear
+            Delete the light.
+        Example :
+            light("light 1").clear
+            
+    - light(key).active
+            Return true or false weither the light is exists or not.
+            It's made ​​to be used in conditions.
+        Example :
+            light("light 1").active == true # does the light exists ?
+            light("light 1").active == false # the light have been deleted ?
+        
+    - light(key).set_pos(x, y, duration)
+            If there is no chara_id the coordinates of the light will be defined
+            relative to the left corner of the map.
+            If there is a chara_id the coordinates of the light will automatically
+            be those from the selected character, this function will then be used
+            to define an offset.
+        x = x coordinate in pixels
+        y = y coordinate in pixels
+        duration = transition time in number of frames.
+            The coordinates will change between the current value and the
+            required on the given duration.
+            It can afford to meke the light move.
+            0 = no transition.
+            We can omit this argument, which will put its value to 0.
+            It will be the same everywhere so I won't repeat.
+        Example :
+            light("light 1").set_pos(128, 256, 60) # set_pos with 60 frames transition
+            light("light 1").set_pos(128, 256) # set_pos without transition
+            
+    - light(key).set_origin(x, y, duration)
+            Change the origin of the image.
+        x = x coordinate of center of the image as a percentage.
+            0 = leftmost.
+            100 = rightmost.
+            Default value is 50.
+        y = y coordinate of center of the image as a percentage.
+            0 = topmost.
+            100 = bottommost.
+            Default value is 50.
+        Example :
+            light("light 1").set_origin(0, 0) # Origin to top-left corner
+            
+    - light(key).set_parallax(x, y, duration)
+            This option allows you to manage the level of anchor of the light on
+            the map, ie when the map scrolls the light scroll at different speeds.
+            By default values ​​are 1, which means that lights scroll at the same
+            speed as the map.
+            If we put 2 the lights will scroll twice faster than the map.
+            If we put 0 the lights will no longer scroll, as if they were
+            anchored to the screen.
+            You can also put decimals like 0.5 to scroll slower or negative
+            numbers to reverse the direction of scrolling.
+            However, this is only for lights affiliated to the map,
+            if the light follows a character this option won't work.
+        x = horizontal anchor.
+            Default value is 1.
+        y = vertical anchor.
+            Default value is 1.
+        Example :
+            light("light 1").set_parallax(0, 0) # light anchored to screen
+            
+    - light(key).set_opacity(opacity, duration)
+            Changes the opacity of the light, which will have the effect of
+            making it shines less on day and lights less at night too.
+            If we just want to make it shine less days while illuminating well
+            at night we should lower the alpha component of the color.
+        opacity = percentage between 0 and 100.
+            Default value is 100.
+        Example :
+            light("light 1").set_opacity(75, 60)
+            
+    - light(key).set_color(red, green, blue, alpha, duration)
+            Applies a color to the light.
+            We can have a null color (with all values to 0), the light will be
+            invisible on the day, and will only prevent the screen from darkening
+            at night (no color).
+            To have a black light or who darkened the screen it will be necessary
+            to change the blend_type (see below).
+        red, green, blue = numbers between 0 and 255.
+            These are the components of the color.
+            Default value is 0.
+        alpha = number between 0 and 255.
+            This is the transparency of the color but here it rather is the
+            brightness of our light.
+            Default value is 255 = 100%.
+        Example :
+            light("light 1").set_color(255, 0, 0, 255) # => red light
+            
+    - light(key).set_zoom(zoom, duration)
+            Changes the zoom of the light.
+        zoom = a percentage.
+            Default value is 100.
+        Examples :
+            light("light 1").set_zoom(200) # => zoom to 200% instant
+            light("light 1").set_zoom(200, 60) # => zoom to 200% on 60 frames
+            
+    - light(key).set_flicker(variance, refresh_rate, duration)
+            Makes the light flicker as fire.
+            The effect is achieved by changing the zoom randomly.
+        variance = amplitude of the flicker in percentage of zoom.
+            It must be a number greater than 0.
+            It is better to put small numbers.
+            Default value is 0 = disabled.
+        refresh_rate = interval between each change in number of frames.
+            Generally the more the variance is high the more the interval should
+            be large to avoid any epileptic thing.
+            Default value is 4.
+        Example :
+            light("light 1").set_flicker(2, 4)
+            
+    - light(key).set_angle(angle, duration)
+            Makes the light rotate...
+            It works but only for daylights.
+        angle = number of degrees.
+            You can also put a negative number.
+            Note that if we make a 360° rotation and we want to do another again
+            it won't do anything, since we're already at 360° we must either
+            go to 720° or reset the value to 0 before trying to return it to 360.
+        Example :
+            light("light 1").set_angle(360, 60) # => do a barrel roll
+            
+    - light(key).set_wave(amp, length, speed, duration)
+            Makes the light waving.
+            It works but only for daylights.
+        amp = amplitude (horizontal) of the wave in number of pixels.
+            It must be a number greater than 0.
+            Default value is 0 = disabled.
+        length = length (vertical) of the wave in number of pixels.
+            Default value is 180.
+        speed = speed of the wave.
+            Default value is 360.
+        Example :
+            light("light 1").set_wave(4, 180, 360, 60)
+            
+    - light(key).visible = true or false
+            Used to hide a light without losing its settings, it can always be useful.
+            Default value is true.
+        Example :
+            light("light 1").visible = false
+            
+    - light(key).blend_type = 0 or 1 or 2
+            Changes the blending of the light.
+            If 0 => Normal
+            If 1 => Addition
+            If 2 => Subtraction
+            Default value is 1.
+        Example :
+            light("light 1").blend_type = 2
+            
+    - light(key).directions = n
+            It is possible to have directional lights, to make flashlights eg.
+            This means that when you put a light on a character, the light will
+            take the same direction as the character.
+            The script can support characters with 2, 4 or 8 directions.
+        n = the number of directions.
+            The file must be designed for this purpose, it works like a sheet of
+            characters, there must have all directions in the same file, one
+            above the other in the same order as characters.
+            Default value is 1.
+        Example :
+            light("light 1").directions = 4
+            
+    - light(key).patterns = n
+            As for directions lights can have animations which are synchronized
+            with the animation of their character.
+            The idea is the same.
+        n = the number of animations.
+            Here animations should be aligned horizontally in the file as for
+            character sheets.
+            Default value is 1.
+        Example :
+            light("light 1").patterns = 4
+            
+    - light(key).anime_rate = n
+            This option can automatically animate the light (Stepping anim somehow).
+        n = interval between each animation in number of frames.
+            The more it's high the more the animation is slow.
+            Default value is 0 = disabled.
+        Example :
+            light("light 1").anime_rate = 10
+      
+  Shadows :
+            
+    - shadow(key).setup(filename)
+            Initializes a new shadow.
+        key = an identifier for our shadow.
+            Works exactly the same way as the lights.
+        filename = the file name used for the shadow.
+            Here unlike the lights one can colorize the shadows directly in the
+            file if needed (although in general the shadows are black).
+            Images shadows should not be transparent but full, transparency of
+            shadows is handled automatically by the script according to the
+            ambient lighting.
+        Example :
+            shadow("shadow 1").setup("shad.png") # new shadow
+            shadow.setup("shad.png") # new shadow without name
+            
+    - shadow(key).setup(width, height)
+            Initializes a new shade without using an image.
+            If you need a simple rectangular shade that is simpler and more
+            efficient to do like that rather than to create and use images.
+        width = the width of the shadow in pixels.
+        height = the height of the shadow in pixels.
+        Example :
+            shadow("shadow 1").setup(32, 96) # new shadow 32x96px size
+            
+    - shadow(key).chara_id = n
+            Allows to link a light to a character (event, player, vehicle).
+            The idea is the same as for the lights.
+            However Caution, character's shadows cannot darken other characters,
+            if you want shadows under which we can pass they must be linked to
+            the map.
+        n = id of the character under which to display the shadow.
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").chara_id = -1 # lie l'ombre au héros
+            
+    - shadow(key).clear
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").clear # delete shadow
+            
+    - shadow(key).active
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").active == true # does the shadow exists ?
+        
+    - shadow(key).set_pos(x, y, duration)
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").set_pos(128, 256, 60) # set_pos with 60 frames transition
+            
+    - shadow(key).set_origin(x, y, duration)
+            Change the origin of the image.
+            By default, the origin is always at the center as for lights.
+            When a shadow is placed on a character it's often better that way
+            but usually when we want to put one on the map, we do it relative to
+            its upper left corner, so do not forget to change the origin !
+        x = x coordinate of center of the image as a percentage.
+        y = y coordinate of center of the image as a percentage.
+        Example :
+            shadow("shadow 1").set_origin(0, 0) # Origin to top-left corner
+            
+    - shadow(key).set_parallax(x, y, duration)
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").set_parallax(0, 0) # shadow anchored to screen
+            
+    - shadow(key).set_opacity(opacity, duration)
+            Changes the opacity of the shadow, opacity is already handled
+            automatically by the script so it's not much use, but if for some
+            reason there's need to lower the opacity of a shadow in particular
+            it's possible.
+            This option only works if you use an image for the shadow,
+            otherwise you should do with the alpha channel of the color.
+        opacity = percentage between 0 and 100.
+            Default value is 100.
+        Example :
+            shadow("shadow 1").set_opacity(75, 60)
+            
+    - shadow(key).set_color(red, green, blue, alpha, duration)
+            Set the color of the shadows when not using image.
+        red, green, blue = numbers between 0 and 255.
+            These are the components of the color.
+            Default value is 0 = black.
+        alpha = number between 0 and 255.
+            It is the opacity of our shadow.
+            Default value is 255 = 100%.
+        Example :
+            shadow("shadow 1").set_color(0, 255, 0, 255) # => green shadow
+            
+    - shadow(key).set_zoom(zoom, duration)
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").set_zoom(200) # => zoom to 200% instant
+            
+    - shadow(key).visible = true or false
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").visible = false
+            
+    - shadow(key).directions = n
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").directions = 4
+            
+    - shadow(key).patterns = n
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").patterns = 4
+            
+    - shadow(key).anime_rate = n
+            Works exactly the same way as the light.
+        Example :
+            shadow("shadow 1").anime_rate = 10
+            
+    - shadow(key).shadowable = true or false
+            Defines whether a shadow should darken characters or not.
+            For shadows linked with characters it's important to make them not
+            darken, otherwise the linked character will be darkened all the time.
+            Default value is true.
+        Example :
+            shadow("shadow 1").shadowable = false
+            
+    - set_shadowable(value, chara_id)
+            Defines if a character can be darkened or not.
+        value = true or false
+            Default value is true.
+        chara_id = id of the character on which change this option.
+            If we put nothing it means "this event", which runs the script,
+            as @event_id.
+        Example :
+            set_shadowable(false, -1) # prevent the player from being darkened
+            set_shadowable(false) # prevent "this event" from being darkened
+=end
