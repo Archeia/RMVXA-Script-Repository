@@ -28,3 +28,16 @@ Dedicated Repositories for large amounts of scripts.
 ### DigiDeity
 - [Original Profile](https://github.com/DigiDeity/RPGMakerVXAceScripts)
 - https://github.com/Archeia/RPGMakerVXAceScripts
+
+### Neonblack's Scripts
+- [Original Profile](https://pastebin.com/u/neonblack)
+
+### Sixth's Scripts
+- [Original Profile](http://pastebin.com/u/TheSixth)
+
+### Atoa/Victor's Scripts
+- [Original Profile](https://victorenginescripts.wordpress.com/rpg-maker-mv/)
+
+### Vlue's Scripts
+- [Original Profile](https://pastebin.com/u/Vlue)
+
