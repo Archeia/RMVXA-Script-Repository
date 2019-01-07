@@ -1,0 +1,52 @@
+=begin
+Face Macros (compatibility)
+by Fomar0153
+Version 1.0
+----------------------
+Notes
+----------------------
+Allows you to add text to the beginning of a message based
+on the face being used.
+----------------------
+Instructions
+----------------------
+This script should go below any custom message systems.
+
+To add a macro do:
+FACE_MACROS['Face_name'] = []
+The 0th index is the default for that whole sheet
+and then the 1st to 8th indexes are specifically for
+certain faces on the sheet.
+So:
+FACE_MACROS['Face_name'][0] = 'some text'
+Please use single quotes (')
+----------------------
+Known bugs
+----------------------
+None
+=end
+
+class Window_Message < Window_Base
+  #--------------------------------------------------------------------------
+  # * Face Macros
+  #--------------------------------------------------------------------------
+  FACE_MACROS = {}
+  FACE_MACROS['Actor4'] = []
+  FACE_MACROS['Actor4'][1] = '\c[1]\n[1]: '
+  FACE_MACROS['Actor1'] = []
+  FACE_MACROS['Actor1'][1] = '\c[2]Ralph: '
+  #--------------------------------------------------------------------------
+  # * Add the macro text
+  #--------------------------------------------------------------------------
+  alias compat_convert_escape_characters convert_escape_characters
+  def convert_escape_characters(text)
+    if FACE_MACROS[$game_message.face_name] != nil
+      if FACE_MACROS[$game_message.face_name][$game_message.face_index + 1] != nil
+        text = FACE_MACROS[$game_message.face_name][$game_message.face_index + 1] + text
+      else
+        text = FACE_MACROS[$game_message.face_name][0] + text
+      end
+    end
+    return compat_convert_escape_characters(text)
+  end
+end

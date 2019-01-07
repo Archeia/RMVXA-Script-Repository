@@ -1,0 +1,8 @@
+class Game_Actor < Game_Battler
+  def execute_floor_damage
+    value = 1
+    damage = (mhp * value / 100).to_i
+    self.hp -= [damage, max_floor_damage].min
+    perform_map_damage_effect if damage > 0
+  end
+end
