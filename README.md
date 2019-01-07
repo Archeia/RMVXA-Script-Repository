@@ -1,5 +1,5 @@
 # RPG Maker VXAce Scripts Repository
-An attempt to conserve all VXAce Scripts made by various scripts after Dropbox deleted all public links.
+An attempt to conserve all VXAce Scripts made by various scripters after Dropbox deleted all public links.
 
 ### Kread-Ex-Scripts
 - http://grimoirecastle.wordpress.com/
