@@ -43,3 +43,6 @@ Dedicated Repositories for large amounts of scripts.
 
 ### BlackMorning's Scripts
 - [Original Profile](https://bmscripts.weebly.com/)
+
+### DrDhoom's Scripts
+- [Original Profile](https://drd-workshop.blogspot.com/)
