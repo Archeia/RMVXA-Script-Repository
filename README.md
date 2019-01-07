@@ -41,3 +41,5 @@ Dedicated Repositories for large amounts of scripts.
 ### Vlue's Scripts
 - [Original Profile](https://pastebin.com/u/Vlue)
 
+### BlackMorning's Scripts
+- [Original Profile](https://bmscripts.weebly.com/)
