@@ -1,0 +1,7 @@
+---
+name: Automations
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Classes for creating automations or animations.
+require: _basalt.rb
+deps:
+- script_dep

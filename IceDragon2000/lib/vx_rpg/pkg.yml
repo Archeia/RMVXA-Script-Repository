@@ -1,0 +1,6 @@
+---
+name: RMVX RPG
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: RPG module from RMVX.
+require: _basalt.rb
+deps: []

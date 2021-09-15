@@ -1,0 +1,6 @@
+---
+name: Script Dep
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Script management package.
+require: _basalt.rb
+deps: []

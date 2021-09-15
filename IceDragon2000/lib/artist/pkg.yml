@@ -1,0 +1,7 @@
+---
+name: Artist
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: An abstraction layer for RMVX's Bitmap.
+require: _basalt.rb
+deps:
+- script_dep

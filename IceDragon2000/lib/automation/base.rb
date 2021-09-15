@@ -1,0 +1,7 @@
+require 'automation/base/base'
+require 'automation/base/base_time'
+require 'automation/base/base_eased'
+require 'automation/base/base_eased_osc'
+require 'automation/base/batch'
+require 'automation/base/chained'
+require 'automation/base/parallel'

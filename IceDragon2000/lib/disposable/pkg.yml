@@ -1,0 +1,7 @@
+---
+name: Disposable
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Interface to creating disposable objects.
+require: _basalt.rb
+deps:
+- script_dep

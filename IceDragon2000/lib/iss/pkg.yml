@@ -1,0 +1,7 @@
+---
+name: ISS Framework
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: A RM framework originally designed for SARA.
+require: _basalt.rb
+deps:
+- script_dep

@@ -1,0 +1,7 @@
+---
+name: Ice Engine Xellion
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: IEX Framework
+require: _basalt.rb
+deps:
+- script_dep

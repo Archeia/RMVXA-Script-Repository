@@ -1,0 +1,7 @@
+---
+name: Ice Engine Katana
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Framework independent package for extending RM games.
+require: _basalt.rb
+deps:
+- script_dep

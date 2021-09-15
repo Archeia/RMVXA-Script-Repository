@@ -1,0 +1,8 @@
+---
+name: Drawext
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Specialized drawing framework for RMVXA.
+require: _basalt.rb
+deps:
+- script_dep
+- color_tool

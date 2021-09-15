@@ -1,0 +1,8 @@
+---
+name: Yggdrasil 1.5
+version: 1.5.1
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Yggdrasil 1.5 series.
+require: _basalt.rb
+deps:
+- script_dep

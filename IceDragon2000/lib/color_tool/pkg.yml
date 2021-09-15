@@ -1,0 +1,8 @@
+---
+name: Color Tool
+version: '1.1.0'
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Color manipulation modules.
+require: _basalt.rb
+deps:
+- script_dep

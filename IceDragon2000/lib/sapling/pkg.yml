@@ -1,0 +1,7 @@
+---
+name: Sapling
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Eventing system.
+require: _basalt.rb
+deps:
+- script_dep

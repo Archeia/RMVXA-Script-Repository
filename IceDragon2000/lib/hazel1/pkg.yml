@@ -1,0 +1,7 @@
+---
+name: Hazel v1 UI Toolkit
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: A simple set of classes for arranging and handling UI components.
+require: _basalt.rb
+deps:
+- script_dep

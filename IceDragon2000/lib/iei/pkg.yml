@@ -1,0 +1,7 @@
+---
+name: Ice Engine Illix
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Fourth generation of Ice Engine scripts.
+require: _basalt.rb
+deps:
+- script_dep

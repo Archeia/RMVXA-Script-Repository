@@ -1,0 +1,6 @@
+---
+name: RPG Reset
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Remove the existing RPG module.
+require: _basalt.rb
+deps: []

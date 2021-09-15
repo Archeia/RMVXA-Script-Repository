@@ -1,0 +1,9 @@
+---
+name: Yggdrasil 5
+version: 5.0.0
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Yggdrasil 5 series.
+require:
+deps:
+- sapling
+- script_dep

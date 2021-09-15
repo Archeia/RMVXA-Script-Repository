@@ -1,0 +1,7 @@
+---
+name: EDOS
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Original Earthen Smiths modules.
+require: _basalt.rb
+deps:
+- script_dep

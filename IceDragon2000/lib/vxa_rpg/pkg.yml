@@ -1,0 +1,6 @@
+---
+name: RMVXA RPG
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: RPG module from RMVXA.
+require: _basalt.rb
+deps: []

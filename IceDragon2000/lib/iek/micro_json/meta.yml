@@ -1,0 +1,5 @@
+# require_rgss meta.yml
+---
+order:
+- micro_json.rb
+- monkey.rb

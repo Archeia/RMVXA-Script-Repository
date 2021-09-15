@@ -1,0 +1,16 @@
+# core
+require 'iek/rgss3_ext/numeric'
+# classes
+require 'iek/rgss3_ext/bitmap'
+require 'iek/rgss3_ext/color'
+require 'iek/rgss3_ext/font'
+require 'iek/rgss3_ext/plane'
+require 'iek/rgss3_ext/rect'
+require 'iek/rgss3_ext/sprite'
+require 'iek/rgss3_ext/table'
+require 'iek/rgss3_ext/tilemap'
+require 'iek/rgss3_ext/tone'
+require 'iek/rgss3_ext/viewport'
+require 'iek/rgss3_ext/window'
+# modules
+require 'iek/rgss3_ext/graphics'

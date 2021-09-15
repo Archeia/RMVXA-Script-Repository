@@ -1,0 +1,6 @@
+---
+name: ruby2-backport
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Some backported features for rgss3 from ruby2.x
+require: _basalt.rb
+deps: []

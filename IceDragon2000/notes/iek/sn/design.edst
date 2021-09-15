@@ -1,0 +1,86 @@
+%%design
+{
+  %name Summon Night
+  %type Module
+  %%pubilc-note
+  {
+    This is a IEK module based on the systems from:
+    "Summon Night : Swordcraft Story"
+  }
+  %%note
+  {
+    The scenes of Summon Night's system is as follows:
+    %%scenes
+    {
+      %%scene
+      {
+        %name Splash Screen
+        %class Scene_Splash
+        %%note
+        {
+          As with most console games, the first thing that is seen is a
+          Splash screen, usually with a copyright notice or something of that
+          nature.
+        }
+      }
+      %%scene
+      {
+        %name Demo / Preview
+        %class Scene_Demo
+        %%note
+        {
+          Its basically that opening sequence you see right before the
+          "Press Start" stuff normally.
+        }
+      }
+      %%scene
+      {
+        %name Press Start
+        %class Scene_PressStart
+        %%note
+        {
+          Also known as pre Title, this screen displays the Title Screen
+          Graphics with a flashing or blinking "Press Start Button" text.
+        }
+      }
+      %%scene
+      {
+        %name Title Select
+        %class Scene_Title
+        %%note
+        {
+          This displays a title menu, with "New Game", "Continue" etc...
+        }
+      }
+      %%scene
+      {
+        %name Character Select
+        %class Scene_CharacterSelect
+        %%note
+        {
+          Before jumping into the game, the player is required to select a
+          character from a list (in the case of Summon Night, this is only)
+        }
+      }
+      %%scene
+      {
+        %name Name Entry
+        %class Scene_Name
+        %%note
+        {
+          After you've selected your character and manage to get through
+          a bit of the intro, you are greeted by Name Entry screen.
+        }
+      }
+      %%scene
+      {
+        %name Item Menu
+        %class Scene_Item
+        %%note
+        {
+          A simple uncatergorized item menu
+        }
+      }
+    }
+  }
+}

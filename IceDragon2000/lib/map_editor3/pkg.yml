@@ -1,0 +1,7 @@
+---
+name: Map Editor 3
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Ingame Map Editor for RGSS3.
+require: _basalt.rb
+deps:
+- script_dep

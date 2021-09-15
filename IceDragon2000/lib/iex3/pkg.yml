@@ -1,0 +1,7 @@
+---
+name: Ice Engine Xellion 3
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Crossover edition of IEX 1 and 2
+require: _basalt.rb
+deps:
+- script_dep

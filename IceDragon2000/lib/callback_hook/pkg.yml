@@ -1,0 +1,7 @@
+---
+name: Callback Hook
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Mixin for hooking methods instead of alias patching.
+require: _basalt.rb
+deps:
+- script_dep

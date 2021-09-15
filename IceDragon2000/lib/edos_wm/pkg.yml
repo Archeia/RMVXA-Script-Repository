@@ -1,0 +1,7 @@
+---
+name: EDOS Window Manager
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: A Window Manager.
+require: _basalt.rb
+deps:
+- script_dep

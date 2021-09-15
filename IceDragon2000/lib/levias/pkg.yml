@@ -1,0 +1,7 @@
+---
+name: Levias
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Map system based on Riviera the promised land.
+require: _basalt.rb
+deps:
+- script_dep

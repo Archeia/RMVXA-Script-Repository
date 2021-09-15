@@ -1,0 +1,1 @@
+require 'iek/async/async'

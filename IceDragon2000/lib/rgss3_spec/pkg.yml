@@ -1,0 +1,7 @@
+---
+name: RGSS3 Spec Tests
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: A complete set of basic tests to verify RGSS3 implementations.
+require: _basalt.rb
+deps:
+- test

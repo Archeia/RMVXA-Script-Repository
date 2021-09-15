@@ -1,0 +1,8 @@
+---
+name: RMVX Crossover
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Crossover package for RMVX projects in RGSS3.
+require: _basalt.rb
+deps:
+- iex3
+- script_dep

@@ -1,0 +1,7 @@
+---
+name: VXA Make
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: "Various utility modules to making Features, and Effects."
+require: _basalt.rb
+deps:
+- script_dep

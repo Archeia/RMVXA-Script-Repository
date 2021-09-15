@@ -1,0 +1,19 @@
+Tools:
+  Pencil
+    The pencil tool will draw to the current tile using the palette tile,
+    it will not affect the sorrounding tiles.
+    .actions:
+      A: place tile
+      B: erase tile
+      C: copy tile
+  Brush
+    The brush tool will draw to the current tile using the palette tile, it
+    will autotile with the sorrounding tiles.
+    .actions:
+      A: place tile
+      B: erase tile
+      C: copy tile
+  Rectangle
+    .actions:
+      A: place point 1
+      B: place point 2

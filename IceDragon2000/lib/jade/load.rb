@@ -1,0 +1,5 @@
+require 'jade/jade'
+require 'jade/phase_controller'
+require 'jade/event_controller'
+require 'jade/phase_model'
+require 'jade/battle_manager'

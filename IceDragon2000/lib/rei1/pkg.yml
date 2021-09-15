@@ -1,0 +1,7 @@
+---
+name: Rogue Engine Ice 1
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: First revision of Rogue Engine Ice.
+require:
+deps:
+- script_dep

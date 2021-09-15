@@ -1,0 +1,6 @@
+# require_rgss meta.yml
+---
+order:
+- script_dep.rb
+- bootstrap.rb
+- resolve.rb

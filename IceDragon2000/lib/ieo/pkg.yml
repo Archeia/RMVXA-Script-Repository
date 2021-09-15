@@ -1,0 +1,7 @@
+---
+name: Ice Engine Omega
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Third generation Ice Engine.
+require: _basalt.rb
+deps:
+- script_dep

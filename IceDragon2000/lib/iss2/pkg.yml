@@ -1,0 +1,7 @@
+---
+name: ISS2 Framework
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: A RM framework designed for SARA (RMVXA).
+require: _basalt.rb
+deps:
+- script_dep

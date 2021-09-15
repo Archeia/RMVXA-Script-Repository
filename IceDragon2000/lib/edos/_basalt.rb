@@ -1,0 +1,1 @@
+require 'edos/load'

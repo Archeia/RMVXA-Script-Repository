@@ -1,0 +1,7 @@
+---
+name: Katana Framework
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Sharp cutting event driven RM framework.
+require: _basalt.rb
+deps:
+- script_dep

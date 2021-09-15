@@ -1,0 +1,6 @@
+---
+name: RMVXA Base Classes
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Original RMVXA Base classes.
+require: _basalt.rb
+deps: []

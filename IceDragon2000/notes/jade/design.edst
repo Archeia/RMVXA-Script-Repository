@@ -1,0 +1,192 @@
+%%design
+{
+  %name Jade
+  %%public-note
+  {
+    Jade, is a minimalistic, module based Tactical Battle System (TBS) for
+    RPG Maker VX Ace games (or RGSS3).
+    The objective of Jade is to provide a barebones framework for creating
+    and expanding TBS development.
+  }
+  %%note
+  {
+    Jade is a continuation of the JIFZTbs (formally known as awe_tbs), while
+    development is continued solely by IceDragon, the orginal system was
+    co-founded by members of JIFZ (Jet, IceDragon, FenixFyreX, Zetu and
+    Nelderson (who was a member of the sub group NPFZ)).
+  }
+  %%usage
+  {
+    The simplest way to use Jade, is to load the vxa integrations and
+    in an event script:
+    code[ruby] {
+      setup_tbs(map_id: id)
+      call_tbs
+    }
+  }
+  %%battle
+  {
+    %%note
+    {
+      Battles progress in a loop, which involves starting turns acting,
+      ending turns, executing actions and events and overall judging of
+      the current battle.
+    }
+    %%phases
+    {
+      %%judge
+      {
+        %usage <push>
+        Judging is a special phase which will return control to the
+        previous phase if judging passes, otherwise, a judge handler is called,
+        which normally terminates the battle and display the status.
+      }
+      %%idle
+      {
+        %usage <push>
+        The `idle` phase is never used internally, it is added simply to allow
+        breaks for running events by the user.
+        The `idle` phase is <push>-ed unto the phase stack rather than
+        <change>-d, this makes it possible to <pop> the `idle` phase and resume
+        normal behaviour.
+      }
+      %%battle_start
+      {
+        %usage <change>
+        %events <on_battle_start>, <judge>(:battle_start)
+        %%note
+        {
+          This phase is entered once and is responsible for initiating the
+          battle.
+          In this phase, objective and introductory events are executed.
+        }
+      }
+      %%turn_start
+      {
+        %usage <change>
+        %events <on_turn_start>, <judge>(:turn_start)
+        Called once when a global turn starts.
+      }
+      %%unit_turn_start
+      {
+        %usage <change>
+        %events <on_unit_turn_start>, <judge>(:unit_turn_start)
+        Called once each time a unit's turn is started
+      }
+      %%unit_start
+      {
+        %usage <change>
+        %events <on_unit_start>
+        Called once after a `unit_turn_start`
+      }
+      %%unit_make_action
+      {
+        %usage <change>
+        %events <on_unit_make_action>
+        Called for each available action.
+        Enemies will immediately make actions all there actions, while players,
+        will have to input there action.
+        This is considered the only phase where control is returned to Jade's
+        handler.
+      }
+      %%unit_start_action
+      {
+        %usage <change>
+        %events <on_unit_start_action>, <judge>(:unit_start_action)
+        Called before any effects or costs are payed for an action, this
+        phase is used for pre action setups.
+      }
+      %%unit_execute_action
+      {
+        %usage <change>
+        %events <on_unit_execute_action>
+      }
+      %%unit_end_action
+      {
+        %usage <change>
+        %events <on_unit_end_action>, <judge>(:unit_end_action)
+
+        Called after a unit has executed an action, exp gain, gold gain and
+        judging takes place here
+      }
+      %%unit_check_next_action
+      {
+        %usage <change>
+        %events <on_unit_check_next_action>
+        This determines if the unit can make another action or should
+        immediately end its turn
+      }
+      %%unit_end
+      {
+        %usage <change>
+        %events <on_unit_end>
+        Called when a unit has completed acting
+      }
+      %%unit_turn_end
+      {
+        %usage <change>
+        %events <on_unit_turn_end>, <judge>(:unit_turn_end)
+        Called immediately after a `unit_end`
+      }
+      %%check_next_unit
+      {
+        %usage <change>
+        %events <on_check_next_unit>
+        This event causes the selection of the next available unit, if
+        there are no more available units then the phase is changed to
+        `turn_end` instead, otherwise `next_unit`
+      }
+      %%next_unit
+      {
+        %usage <change>
+        %events <on_next_unit>
+      }
+      %%turn_end
+      {
+        %usage <change>
+        %events <on_turn_end>, <judge>(:turn_end)
+        Called at the end of all unit turns
+      }
+      %%check_next_turn
+      {
+        %usage <change>
+        %events <on_check_next_turn>
+        Should the system advance to the next turn or?
+      }
+      %%next_turn
+      {
+        %usage <change>
+        %events <on_turn_change>, <judge>(:next_turn)
+        Advances to the next turn, this will immediately switch to the
+        `turn_start` phase.
+      }
+      %%battle_end
+      {
+        %usage <change>
+        %events <on_battle_end>, <judge>(:battle_end)
+        Called at the end of a battle
+      }
+    }
+    %%phase_map
+    {
+      unit_action_order = `unit_make_action` > \
+                          `unit_start_action` > \
+                          `unit_execute_action` > \
+                          `unit_end_action`
+
+      unit_order = `unit_turn_start` > \
+                   `unit_start` > \
+                   loop(`unit_action_order` > break?(`unit_check_next_action`)) > \
+                   `unit_end` > \
+                   `unit_turn_end`
+
+      turn_order = `turn_start` > \
+                   loop(`unit_order` > break?(`check_next_unit`)) > \
+                   `turn_end`
+
+      order = `battle_start` > \
+              loop(`turn_order` > break?(`check_next_turn`)) > \
+              `battle_end`
+    }
+  }
+}

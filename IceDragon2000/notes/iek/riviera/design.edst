@@ -1,0 +1,70 @@
+%%design
+{
+  %name Riviera
+  %type Module
+  %%pubilc-note
+  {
+    This is a IEK module based on the systems from:
+    "Riviera : The Promised Land"
+  }
+  %%note
+  {
+    Riviera the promised land was a RPG which appeared on the Wonder Swan,
+    Game Boy Advance, and PSP consoles.
+    The game featured a turn based battle system, and a weapon experience
+    system.
+
+    Instead of characters gaining experience by fighting enemies, they would
+    gain experience on the items they use, which in turn increased their
+    overall stats and added new skills.
+
+    Battles took place by selecting 3 characters from the available 5,
+    the `formation` of the characters affected what/and who would be targetted
+    by certain skills.
+
+    The 2 formations where:
+    %%formations
+    {
+      %%formation
+      {
+        %name Magic
+        %%note
+        {
+          This formation, has 1 character in front and 2 characters in the
+          back, the formation can be rotated, or flipped to the `Attack`
+          formation.
+        }
+      }
+      %%formation
+      {
+        %name Attack
+        %%note
+        {
+          This formation, has 2 characters in front and 2 characters in the
+          back, the formation can be rotated, or flipped to the `Magic`
+          formation.
+        }
+      }
+    }
+
+    Before battle, the player is required to select items from his inventory
+    to use in battle, they where limited to 4 items.
+    Items once used in battle can be consumed, or they may be infinite
+    (in the case of the holy weapons)
+    Each character had a different skill while using each item.
+
+    The battle system also featured a kind of range/targetting system,
+    where skills could target, random members on the field, the front row,
+    the back row, all allies, all enemies.
+
+    The map system was similar to that of a point and click system, however
+    due to the system limits, motion was limited to 4 directions.
+    The map system had 2 modes, `Look` and `Move`.
+    Each map/screen could have up to 4 choices, in either mode.
+    While in `Move` mode, the player could change maps or screens by: tapping,
+    one of the corresponding directional buttons on the screen.
+    While in `Look` mode, the player could investigate, or check on
+    interesting elements on the map, once again by: tapping one of the
+    corresponding directional buttons on the screen.
+  }
+}

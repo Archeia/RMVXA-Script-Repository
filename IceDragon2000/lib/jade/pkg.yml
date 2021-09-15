@@ -1,0 +1,7 @@
+---
+name: JADE
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Battle system toolkit.
+require:
+deps:
+- script_dep

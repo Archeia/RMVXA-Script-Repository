@@ -1,0 +1,183 @@
+%%design
+{
+  %name Yggdrasil 5
+  %%public-note
+  {
+    Yggdrasil 5, is the latest take on the Yggdrasil ABS battle system created
+    by IceDragon (Corey Powell).
+    The core feature of Yggdrasil is modularity and full control over its
+    behaviour and features.
+  }
+  %%note
+  {
+    Yggdrasil 5 will be a total rehaul of the Yggdrasil system, instead of
+    relying on the existing Actor/Enemy framework, Yggdrasil 5 will provide
+    its own system all together while providing a port for existing models.
+    The new system will make use of Sapling for receiving and emitting events,
+    vs using a polling system.
+    The line between, enemy and actor will be removed, every character (entity),
+    will be equally treated, allowing players to control enemies and the AI
+    to control a player character.
+  }
+  %%components
+  {
+    Due to Yggdrasil's size, it has been broken into smaller components.
+    Yggdrasil will avoid being: "The one script to rule them all"
+
+    %%component
+    {
+      %name Modular Hud
+      %first Yggdrasil 1.0
+      %%note
+      {
+        One of the oldest features of the Yggdrasil system, is its original
+        modular hud, while not exactly the prettiest in terms of code,
+        the hud offered great flexibility for moving components and changing
+        the overall layout.
+        Yggdrasil 5 will use the sapling server for providing the Hud with
+        necessary events (item use, hp/mp/tp changes, etc...)
+      }
+    }
+    %%component
+    {
+      %name Popups
+      %first Yggdrasil 1.2
+      %%note
+      {
+        Notoriously known for polluting the codebase, Yggdrasil 5 will make use
+        of Sapling to provide damage/recovery and other popup worthy events.
+        In addition, users may use the popup system without the need for
+        Yggdrasil, provided that sapling is installed.
+      }
+    }
+    %%component
+    {
+      %name Actions
+      %first Yggdrasil 1.3
+      %%note
+      {
+        Possibly the most complicated system provided by Yggdrasil is its
+        action system, known for being buggy and somewhat difficult to learn.
+        Yggdrasil 5 will alleviate both by removing the original string/regex/
+        array parser and instead use a ruby DSL for creating actions.
+        Actions will therefore be simple ruby procs, easier to debug and
+        have no further overhead from strings and parsers.
+      }
+    }
+    %%component
+    {
+      %name Entity Drops
+      %first Yggdrasil 1x6
+      %%note
+      {
+        Added during the Yggdrasil 1.5 to 1xN series, Yggdrasil 5 will
+        reintroduce the drop system, new and improved by making use of the
+        entity System.
+      }
+    }
+    %%component
+    {
+      %name Projectiles
+      %first Yggdrasil 1.5
+      %%note
+      {
+        One of the more annoying features that never truly made it in Yggdrasil
+        was its Projectiles, known for being clunky and almost unusable,
+        Yggdrasil 5 will make use of the entity system to create and manage
+        these trouble objects.
+      }
+    }
+    %%component
+    {
+      %name Shift System
+      %first Yggdrasil 1.0
+      %%note
+      {
+        Originally designed for Earthen : Dawn of Smiths (currently known as ES-Moon),
+        the shift system was a work around for the party battling that was
+        previously requested by its users.
+        It allowed the player to quickly change between party members to
+        make use of there different skills and equipment.
+      }
+    }
+    %%component
+    {
+      %name Party System
+      %first Yggdrasil 5
+      %%note
+      {
+        Finally making a decent appearance is the all overdue Party System,
+        which ties in nicely with the Pet system (which is actually a branch of
+        the party system)
+      }
+    }
+    %%component
+    {
+      %name Pet System
+      %first Yggdrasil 5
+      %%note
+      {
+        Making use of the Party system, this system allows players to tame,
+        raise and use Pets in Yggdrasil 5
+      }
+    }
+    %%component
+    {
+      %name Free Position Animations
+      %first Yggdrasil 1.n
+      %%note
+      {
+        This component allows users to spawn animations freely on the map
+        without depending on an existing Sprite_Base object
+      }
+    }
+    %%component
+    {
+      %name State Animations
+      %first Yggdrasil 1.3
+      %%note
+      {
+        While first introduced in Yggdrasil 1.3, State animations where known
+        to be slow and almost unusable.
+        Yggdrasil 5 will attempt to rewrite the way animations work and optimize
+        them for use as State Animations (AKA. Looping Animations)
+      }
+    }
+    %%component
+    {
+      %name Notebox Integration
+      %first Yggdrasil 1.3
+      %%note
+      {
+        While in the original versions, notebox integration was a first class
+        feature, however, in Yggdrasil 5, it has become an optional component.
+        All configuration in Yggdrasil 5, can be done from the script itself,
+        and during runtime if needed.
+        Notebox Integration will only wrap this functionality for users.
+      }
+    }
+    %%component
+    {
+      %name Hot Keys
+      %first Yggdrasil 1.n
+      %%note
+      {
+        Yggdrasil 5 will offer 2 different systems for using skills,
+        the first is the classic Hot key system, which is found in most modern
+        MMO RPGs.
+      }
+    }
+    %%component
+    {
+      %name Skill Select
+      %first Yggdrasil 1x6
+      %%note
+      {
+        Yggdrasil 5 will offer 2 different systems for using skills,
+        this system prefers the use of a skill menu, in which the player can
+        select a skill to use during combat, this system mimics the old
+        school, *Mana (Secret of Mana, Secret of Evermore, etc..) games.
+      }
+    }
+  }
+}

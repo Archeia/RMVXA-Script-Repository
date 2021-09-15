@@ -1,0 +1,14 @@
+module Enums
+  module SParamConstants
+    SPARAM_TARGET_RATE       = 0
+    SPARAM_GUARD_RATE        = 1
+    SPARAM_RECOVERY_RATE     = 2
+    SPARAM_PHARMACOLOGY_RATE = 3
+    SPARAM_MP_COST_RATE      = 4
+    SPARAM_TP_CHARGE_RATE    = 5
+    SPARAM_PHYSICAL_DAM_RATE = 6
+    SPARAM_MAGICAL_DAM_RATE  = 7
+    SPARAM_FLOOR_DAM_RATE    = 8
+    SPARAM_EXP_GAIN_RATE     = 9
+  end
+end

@@ -1,0 +1,11 @@
+---
+name: Space Box
+author: IceDragon200 (Corey Powell) (mistdragon100@gmail.com)
+description: Relative position abstraction.
+require: _basalt.rb
+deps:
+- script_dep
+- automation
+- disposable
+- edos_wm
+- artist

@@ -1,0 +1,47 @@
+%%design
+{
+  %name Xpresso
+  %description A basic 1+1=n item mixing system
+  %%public-note
+  {
+    Xpresso, (based off some coffee maker I assume), is a basic 1+1=n item
+    mixing system.
+
+    %%faqs
+    {
+      %%faq
+      {
+        %q What is a 1+1=n system?
+        %a Its a nice way of saying 2 items == variable number of items
+      }
+    }
+  }
+  %%note
+  {
+    Xpresso works by using a Hash table with a 2 element array (MixKey) as its key
+    and then an array of MixResultItem objects.
+
+    code[ruby] {
+      mix_table = {
+        [[type, id], [type, id]] => [MixResultItem ...]
+      }
+    }
+
+    code[ruby] {
+      class MixResult < DataModel::Metal
+        TYPE_NONE   = 0
+        TYPE_ITEM   = 1
+        TYPE_WEAPON = 2
+        TYPE_ARMOR  = 3
+        TYPE_SKILL  = 4
+
+        # Item type
+        field :type,   type: Integer, default: TYPE_NONE
+        # Item ID
+        field :id,     type: Integer, default: 0
+        # Number of items produced
+        field :number, type: Integer, default: 1
+      end
+    }
+  }
+}

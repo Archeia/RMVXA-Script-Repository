@@ -1,0 +1,7 @@
+require 'vxa_make/enums/ability_constants'
+require 'vxa_make/enums/effect_constants'
+require 'vxa_make/enums/feature_constants'
+require 'vxa_make/enums/param_constants'
+require 'vxa_make/enums/route_commands'
+require 'vxa_make/enums/sparam_constants'
+require 'vxa_make/enums/xparam_constants'
